@@ -93,7 +93,8 @@ public class Scene1 extends JPanel {
         scoreSpawnMap.put(5, List.of(
                 new SpawnDetails("PowerUp-MultiShot", BOARD_WIDTH, 180),
                 new SpawnDetails("MissileEnemy", BOARD_WIDTH, 150),
-                new SpawnDetails("MissileEnemy", BOARD_WIDTH, 250)
+                new SpawnDetails("MissileEnemy", BOARD_WIDTH, 250),
+                new SpawnDetails("QuadShotEnemy", BOARD_WIDTH, 300)
         ));
 
         scoreSpawnMap.put(10, List.of(
@@ -428,6 +429,9 @@ public class Scene1 extends JPanel {
                         break;
                     case "MissileEnemy":
                         if (level >= 2) enemies.add(new MissileEnemy(sd.x, sd.y));
+                        break;
+                    case "QuadShotEnemy":
+                        enemies.add(new QuadShotEnemy(sd.x, sd.y));
                         break;
                     case "LaserEnemy":
                         if (level >= 3) enemies.add(new LaserEnemy(sd.x, sd.y, this));
