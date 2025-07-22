@@ -57,10 +57,11 @@ public class InfoScreen extends JPanel {
     private void drawInfoScreen(Graphics g) {
         g.setColor(Color.ORANGE);
         g.setFont(new Font("VCR OSD Mono", Font.BOLD, 30));
-        g.drawString("Enemy & Power-Up Guide", 150, 80);
+        g.drawString("Enemy & Power-Up Guide", 150, 50);
 
         g.setFont(new Font("Arial", Font.PLAIN, 14));
-        int y = 150;
+        int y = 100;
+        drawEntry(g, "", "Press SPACE to shoot", 80, y); y += 60;
 
         drawEntry(g, "Alien", "Alien - Drops bombs randomly.", 80, y); y += 60;
         drawEntry(g, "Bomb", "Bomb - Move towards player (cannot be destroyed)", 80, y); y += 60;
@@ -70,7 +71,7 @@ public class InfoScreen extends JPanel {
         y += 30;
         drawEntry(g, "SpeedUp", "SpeedUp - Increases movement speed.", 80, y); y += 60;
         drawEntry(g, "MultiShot", "MultiShot - Fire multiple shots at once.", 80, y); y += 60;
-        drawEntry(g, "ThreeWayShot", "ThreeWayShot - Fire in 3 bullets at once.", 80, y);
+        drawEntry(g, "ThreeWayShot", "ThreeWayShot - Fire in 3 directions.", 80, y);
 
         g.setFont(new Font("Arial", Font.ITALIC, 16));
         g.setColor(Color.LIGHT_GRAY);

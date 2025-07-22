@@ -7,7 +7,6 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 import gdd.sprite.Player;
-import gdd.util.Util;
 
 public class ThreeWayShot extends PowerUp {
 

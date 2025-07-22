@@ -25,7 +25,7 @@ public class Scene1 extends JPanel {
     private int frame = 0;                      
     private int deaths = 0;                    
     private boolean inGame = true;              
-    private String message = "Game Over";      
+    private String message = "Game Over!";      
 
     private List<PowerUp> powerups;             
     private List<Enemy> enemies;              
@@ -352,6 +352,7 @@ public class Scene1 extends JPanel {
 
         Font small = new Font("Helvetica", Font.BOLD, 14);
         g.setFont(small);
+        message = message + " Your Score: " + deaths;
         g.drawString(message,
                 (BOARD_WIDTH - getFontMetrics(small).stringWidth(message)) / 2,
                 BOARD_HEIGHT / 2);
@@ -406,8 +407,8 @@ public class Scene1 extends JPanel {
     }
 
     private int getCurrentLevel() {
-        if (deaths < 5) return 1;         // Level 1: Normal enemies only
-        else if (deaths < 10) return 2;    // Level 2: Add Missile enemies
+        if (deaths < 10) return 1;         // Level 1: Normal enemies only
+        else if (deaths < 20) return 2;    // Level 2: Add Missile enemies
         else return 3;                     // Level 3: Add Laser enemies
     }
 
@@ -450,9 +451,6 @@ public class Scene1 extends JPanel {
 
 
 
-    /**
-     * Checks if player has won the game
-     */
     private void checkWinCondition() {
         if (deaths == NUMBER_OF_ALIENS_TO_DESTROY) {
             inGame = false;
@@ -591,9 +589,9 @@ public class Scene1 extends JPanel {
         if (enemy instanceof LaserEnemy) {
             LaserEnemy laserEnemy = (LaserEnemy) enemy;
             laserEnemy.takeDamage((ArrayList<Explosion>) explosions);
-            // Check if LaserEnemy was killed
+    
             if (laserEnemy.isDying()) {
-                deaths = NUMBER_OF_ALIENS_TO_DESTROY; // Set deaths to trigger win condition
+                deaths = NUMBER_OF_ALIENS_TO_DESTROY; 
             }
         } else {
             enemy.setDying(true);
@@ -650,18 +648,10 @@ public class Scene1 extends JPanel {
 
     public void enemyKilled(Enemy enemy) {
         if (enemy instanceof LaserEnemy) {
-            deaths = NUMBER_OF_ALIENS_TO_DESTROY; // Set deaths to trigger win condition
+            deaths = NUMBER_OF_ALIENS_TO_DESTROY; 
         }
     }
 
-    // ==============
-    // Helper Methods
-    // ==============
-
-    /**
-     * Adds enemy shots to the game
-     * @param shots List of enemy shots to add
-     */
     public void addEnemyShots(List<EnemyShot> shots) {
         enemyShots.addAll(shots);
     }
@@ -673,13 +663,6 @@ public class Scene1 extends JPanel {
         repaint();
     }
 
-    // =============
-    // Inner Classes
-    // =============
-
-    /**
-     * Game loop timer action listener
-     */
     private class GameCycle implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -687,9 +670,6 @@ public class Scene1 extends JPanel {
         }
     }
 
-    /**
-     * Keyboard input handler
-     */
     private class TAdapter extends KeyAdapter {
         @Override
         public void keyReleased(KeyEvent e) {
