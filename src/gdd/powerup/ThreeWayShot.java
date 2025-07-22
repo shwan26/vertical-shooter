@@ -1,5 +1,11 @@
 package gdd.powerup;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
 import gdd.sprite.Player;
 import gdd.util.Util;
 
@@ -11,8 +17,12 @@ public class ThreeWayShot extends PowerUp {
     }
 
     private void initThreeWayShot() {
-        frames = Util.loadAnimationFrames("src/images/powerup_threewayshot", 1, 1);
-        setImage(frames[0]);
+        try {
+            BufferedImage img = ImageIO.read(new File("src/images/powerup-threeway.png"));
+            setImage(img);
+        } catch (IOException e) {
+            System.err.println("[ERROR] Failed to load MultiShot image: " + e.getMessage());
+        }
     }
 
     @Override

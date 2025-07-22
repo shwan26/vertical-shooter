@@ -1,5 +1,11 @@
 package gdd.powerup;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
 import gdd.sprite.Player;
 import gdd.util.Util;
 
@@ -12,8 +18,12 @@ public class MultiShot extends PowerUp {
     }
 
     private void initMultiShot() {
-        frames = Util.loadAnimationFrames("src/images/powerup_multishot", 1, 1);
-        setImage(frames[0]);
+        try {
+            BufferedImage img = ImageIO.read(new File("src/images/powerup-multishot.png"));
+            setImage(img);
+        } catch (IOException e) {
+            System.err.println("[ERROR] Failed to load MultiShot image: " + e.getMessage());
+        }
     }
 
     @Override

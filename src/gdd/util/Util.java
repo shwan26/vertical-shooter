@@ -1,6 +1,8 @@
 package gdd.util;
 
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -35,4 +37,9 @@ public class Util {
         g2.dispose();
         return resized;
     }
+
+    public static Image loadImage(String path) {
+    return new ImageIcon(path).getImage();
+}
+
 }

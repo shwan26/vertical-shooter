@@ -1,5 +1,11 @@
 package gdd.powerup;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
 import gdd.sprite.Player;
 import gdd.util.Util;
 
@@ -13,11 +19,16 @@ import gdd.util.Util;
 public class SpeedUp extends PowerUp {
 
     public SpeedUp(int x, int y) {
-        super(x, y);
+    super(x, y);
 
-        frames = Util.loadAnimationFrames("src/images/powerup-s", 1, 1);
-        setImage(frames[0]);
+    try {
+        BufferedImage img = ImageIO.read(new File("src/images/powerup-s.png"));
+        setImage(img);
+    } catch (IOException e) {
+        System.err.println("[ERROR] Failed to load SpeedUp image: " + e.getMessage());
     }
+}
+
 
     public void act() {
         

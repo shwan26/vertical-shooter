@@ -34,7 +34,10 @@ public class Scene1 extends JPanel {
     private List<EnemyShot> enemyShots;      
     private List<Alien1.Bomb> bombs;           
     private Player player;            
-    private Game game;      
+    private Game game;  
+    private int lastLevel = 0;    
+    private boolean initialPowerupSpawned = false;
+
 
     private final int BLOCKHEIGHT = 50;       
     private final int BLOCKWIDTH = 50;          
@@ -74,13 +77,6 @@ public class Scene1 extends JPanel {
         loadSpawnDetails();
     }
 
-    // ======================
-    // Initialization Methods
-    // ======================
-
-    /**
-     * Initializes audio player and starts background music
-     */
     private void initAudio() {
         try {
             String filePath = "src/audio/scene1.wav";
@@ -119,11 +115,9 @@ public class Scene1 extends JPanel {
 
         gameInit();
         initAudio();
+        lastLevel = 1;
     }
 
-    /**
-     * Stops the game and cleans up resources
-     */
     public void stop() {
         timer.stop();
         try {
@@ -135,9 +129,6 @@ public class Scene1 extends JPanel {
         }
     }
 
-    /**
-     * Initializes game objects and state
-     */
     private void gameInit() {
         enemies = new ArrayList<>();
         powerups = new ArrayList<>();
@@ -149,14 +140,6 @@ public class Scene1 extends JPanel {
         player = new Player(); // Create player instance
     }
 
-    // =================
-    // Rendering Methods
-    // =================
-
-    /**
-     * Draws the scrolling starfield background
-     * @param g The Graphics object to draw with
-     */
     private void drawMap(Graphics g) {
         int scrollOffset = (frame) % BLOCKWIDTH;
         int baseColumn = (frame) / BLOCKWIDTH;
@@ -177,14 +160,6 @@ public class Scene1 extends JPanel {
         }
     }
 
-    /**
-     * Draws a cluster of stars at specified position
-     * @param g The Graphics object
-     * @param x X position of cluster
-     * @param y Y position of cluster
-     * @param width Width of cluster area
-     * @param height Height of cluster area
-     */
     private void drawStarCluster(Graphics g, int x, int y, int width, int height) {
         g.setColor(Color.WHITE);
 
@@ -206,10 +181,6 @@ public class Scene1 extends JPanel {
         g.fillOval(centerX + 8, centerY + 20, 1, 1);
     }
 
-    /**
-     * Draws all active enemies with their special effects
-     * @param g The Graphics object
-     */
     private void drawAliens(Graphics g) {
         for (Enemy enemy : enemies) {
             if (enemy.isVisible()) {
@@ -233,14 +204,11 @@ public class Scene1 extends JPanel {
         }
     }
 
-    /**
-     * Draws all active power-ups
-     * @param g The Graphics object
-     */
     private void drawPowerUps(Graphics g) {
         for (PowerUp p : powerups) {
             if (p.isVisible()) {
                 g.drawImage(p.getImage(), p.getX(), p.getY(), this);
+                
             }
 
             if (p.isDying()) {
@@ -249,10 +217,6 @@ public class Scene1 extends JPanel {
         }
     }
 
-    /**
-     * Draws the player and handles death animation
-     * @param g The Graphics object
-     */
     private void drawPlayer(Graphics g) {
         if (player.isVisible()) {
             g.drawImage(player.getImage(), player.getX(), player.getY(), this);
@@ -268,10 +232,6 @@ public class Scene1 extends JPanel {
         }
     }
 
-    /**
-     * Draws all player shots
-     * @param g The Graphics object
-     */
     private void drawShot(Graphics g) {
         for (Shot shot : shots) {
             if (shot.isVisible()) {
@@ -280,10 +240,6 @@ public class Scene1 extends JPanel {
         }
     }
 
-    /**
-     * Draws all explosions
-     * @param g The Graphics object
-     */
     private void drawExplosions(Graphics g) {
         List<Explosion> toRemove = new ArrayList<>();
 
@@ -300,10 +256,6 @@ public class Scene1 extends JPanel {
         explosions.removeAll(toRemove);
     }
 
-    /**
-     * Draws all enemy shots
-     * @param g The Graphics object
-     */
     private void drawEnemyShots(Graphics g) {
         for (EnemyShot shot : enemyShots) {
             if (shot.isVisible()) {
@@ -329,22 +281,12 @@ public class Scene1 extends JPanel {
      * @param g The Graphics object
      */
     private void drawDashboard(Graphics g) {
-        g.setColor(Color.white);
-        //g.drawString("FRAME: " + frame, 10, 15);
+        g.setColor(Color.WHITE);
         g.drawString("LEVEL: " + getCurrentLevel(), 10, 15);
         g.drawString("SCORE: " + deaths, 10, 35);
         g.drawString("SPEED: " + player.getSpeed(), 10, 55);
 
-        // Shot type indicator
-        String shotType = "Normal";
-        if (player.isThreeWayShotEnabled()) {
-            shotType = "Three-Way";
-        } else if (player.isMultiShotEnabled()) {
-            shotType = "Multi-Shot";
-        }
-        g.drawString("SHOTS: " + shotType, 10, 75);
-
-        // Power-up indicators
+        // Highlight power-ups
         if (player.isMultiShotEnabled()) {
             g.setColor(Color.YELLOW);
             g.drawString("MULTI-SHOT ACTIVE!", 10, 95);
@@ -353,6 +295,10 @@ public class Scene1 extends JPanel {
             g.setColor(Color.CYAN);
             g.drawString("THREE-WAY ACTIVE!", 10, 115);
         }
+
+        // Reset to white so next frame draws clean
+        g.setColor(Color.WHITE);
+
     }
 
     /**
@@ -375,7 +321,7 @@ public class Scene1 extends JPanel {
         g.fillRect(0, 0, d.width, d.height);
 
         if (inGame) {
-            // Draw game elements in proper z-order
+          
             drawMap(g);                  // Background first
             drawExplosions(g);           // Explosions under entities
             drawPowerUps(g);             // Power-ups
@@ -395,15 +341,10 @@ public class Scene1 extends JPanel {
         Toolkit.getDefaultToolkit().sync();
     }
 
-    /**
-     * Draws game over screen
-     * @param g The Graphics object
-     */
     private void gameOver(Graphics g) {
         g.setColor(Color.black);
         g.fillRect(0, 0, BOARD_WIDTH, BOARD_HEIGHT);
 
-        // Game over message box
         g.setColor(new Color(0, 32, 48));
         g.fillRect(50, BOARD_HEIGHT / 2 - 30, BOARD_WIDTH - 100, 50);
         g.setColor(Color.white);
@@ -416,27 +357,51 @@ public class Scene1 extends JPanel {
                 BOARD_HEIGHT / 2);
     }
 
-    // ==================
-    // Game Logic Methods
-    // ==================
-
-    /**
-     * Main game update method called each frame
-     */
     private void update() {
-        spawnEntities();         // Spawn new enemies/power-ups
-        checkWinCondition();     // Check if player won
-        updatePlayer();          // Handle player movement
-        updatePowerUps();       // Handle power-up logic
-        updateEnemies();         // Handle enemy logic
-        updateShots();           // Handle player shots
-        updateEnemyShots();      // Handle enemy shots
-        updateBombs();           // Handle bombs
+        spawnEntities();         
+        checkWinCondition();    
+        updatePlayer();         
+        updatePowerUps();       
+        updateEnemies();        
+        updateShots();          
+        updateEnemyShots();     
+        updateBombs();          
 
         if (frame % 100 == 0) {
             int randomY = 80 + randomizer.nextInt(BOARD_HEIGHT - 160);
             enemies.add(new Alien1(BOARD_WIDTH, randomY));
+
+            if (getCurrentLevel() >= 2) {
+                int missileY = 80 + randomizer.nextInt(BOARD_HEIGHT - 160);
+                enemies.add(new MissileEnemy(BOARD_WIDTH, missileY));
+            }
+
+            if (getCurrentLevel() >= 3) {
+                int laserY = 80 + randomizer.nextInt(BOARD_HEIGHT - 160);
+                enemies.add(new LaserEnemy(BOARD_WIDTH, laserY, this));
+            }
         }
+
+        int currentLevel = getCurrentLevel();
+        
+        if (currentLevel > lastLevel) {
+            powerups.clear();
+            int randomY = 100 + randomizer.nextInt(BOARD_HEIGHT - 200);
+            powerups.add(new SpeedUp(BOARD_WIDTH, randomY));
+            lastLevel = currentLevel;
+            //System.out.println("[DEBUG] Level-up powerup spawned at level " + currentLevel);
+
+
+        }
+
+        if (!initialPowerupSpawned && currentLevel == 1) {
+            powerups.add(new SpeedUp(BOARD_WIDTH, 150));
+            initialPowerupSpawned = true;
+            System.out.println("[DEBUG] Initial SpeedUp spawned");
+
+        }
+
+
 
     }
 
@@ -527,9 +492,6 @@ public class Scene1 extends JPanel {
         powerups.removeAll(powerupsToRemove);
     }
 
-    /**
-     * Updates all enemies (movement, shooting, collisions)
-     */
     private void updateEnemies() {
         List<Enemy> enemiesToRemove = new ArrayList<>();
         for (Enemy enemy : enemies) {
@@ -551,10 +513,6 @@ public class Scene1 extends JPanel {
         enemies.removeAll(enemiesToRemove);
     }
 
-    /**
-     * Handles special enemy behaviors
-     * @param enemy The enemy to update
-     */
     private void updateSpecialEnemies(Enemy enemy) {
         if (enemy instanceof MissileEnemy) {
             MissileEnemy missile = (MissileEnemy) enemy;
@@ -600,9 +558,6 @@ public class Scene1 extends JPanel {
         enemyShots.add(new EnemyShot(alien.getX(), alien.getY() + 20));
     }
 
-    /**
-     * Updates player shots (movement and collisions)
-     */
     private void updateShots() {
         List<Shot> shotsToRemove = new ArrayList<>();
 
@@ -648,9 +603,6 @@ public class Scene1 extends JPanel {
         shot.die();
     }
 
-    /**
-     * Updates enemy shots (movement and collisions)
-     */
     private void updateEnemyShots() {
         List<EnemyShot> enemyShotsToRemove = new ArrayList<>();
 
@@ -671,9 +623,6 @@ public class Scene1 extends JPanel {
         enemyShots.removeAll(enemyShotsToRemove);
     }
 
-    /**
-     * Updates bombs (movement and collisions)
-     */
     private void updateBombs() {
         List<Alien1.Bomb> bombsToRemove = new ArrayList<>();
 
@@ -717,9 +666,7 @@ public class Scene1 extends JPanel {
         enemyShots.addAll(shots);
     }
 
-    /**
-     * Executes one game cycle (update + render)
-     */
+
     private void doGameCycle() {
         frame++;
         update();
