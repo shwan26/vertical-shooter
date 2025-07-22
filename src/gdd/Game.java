@@ -1,5 +1,6 @@
 package gdd;
 
+import gdd.scene.InfoScreen;
 import gdd.scene.Scene1;
 import gdd.scene.TitleScene;
 import javax.swing.JFrame;
@@ -8,6 +9,8 @@ public class Game extends JFrame  {
 
     TitleScene titleScene;
     Scene1 scene1;
+
+    
 
     public Game() {
         titleScene = new TitleScene(this);
@@ -43,10 +46,23 @@ public class Game extends JFrame  {
 
     public void loadScene2() {
         getContentPane().removeAll();
-        add(scene1);
-        titleScene.stop();
-        scene1.start();
+        InfoScreen infoScreen = new InfoScreen(() -> {
+            
+            add(scene1);
+            scene1.start();
+            setContentPane(scene1);      // assuming you're using JFrame
+            revalidate();
+            scene1.requestFocusInWindow();
+        });
+
+        setContentPane(infoScreen);     // again, assuming JFrame usage
         revalidate();
-        repaint();
+        infoScreen.requestFocusInWindow();
+
+        // add(scene1);
+        // titleScene.stop();
+        // scene1.start();
+        // revalidate();
+        // repaint();
     }
 }
