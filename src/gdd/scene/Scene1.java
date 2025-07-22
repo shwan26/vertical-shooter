@@ -45,7 +45,9 @@ public class Scene1 extends JPanel {
     private final Random randomizer = new Random();
 
     private Timer timer;                     
-    private AudioPlayer audioPlayer;           
+    private AudioPlayer audioPlayer;
+    private AudioPlayer shotAudio;
+    private AudioPlayer explosionAudio;
 
     private HashMap<Integer, List<SpawnDetails>> scoreSpawnMap = new HashMap<>();
     private Set<Integer> spawnedScores = new HashSet<>();
@@ -79,8 +81,9 @@ public class Scene1 extends JPanel {
 
     private void initAudio() {
         try {
-            String filePath = "src/audio/scene1.wav";
-            audioPlayer = new AudioPlayer(filePath);
+            // Background music
+            audioPlayer = new AudioPlayer("src/audio/scene1.wav");
+            audioPlayer.setLoop(true);
             audioPlayer.play();
         } catch (Exception e) {
             System.err.println("Error initializing audio player: " + e.getMessage());
@@ -120,7 +123,9 @@ public class Scene1 extends JPanel {
     }
 
     public void stop() {
-        timer.stop();
+        if (timer != null) {
+            timer.stop();
+        }
         try {
             if (audioPlayer != null) {
                 audioPlayer.stop();
@@ -357,6 +362,13 @@ public class Scene1 extends JPanel {
         g.drawString(message,
                 (BOARD_WIDTH - getFontMetrics(small).stringWidth(message)) / 2,
                 BOARD_HEIGHT / 2);
+
+        try {
+            new AudioPlayer("src/audio/gameover.wav").play();
+            audioPlayer.stop();
+        } catch (Exception e) {
+            System.out.println("Game over sound error: " + e);
+        }
     }
 
     private void update() {
@@ -460,6 +472,11 @@ public class Scene1 extends JPanel {
             inGame = false;
             timer.stop();
             message = "Game won!";
+            try {
+                new AudioPlayer("src/audio/gamewon.wav").play();
+            } catch (Exception e) {
+                System.out.println("Game won sound error: " + e);
+            }
         }
     }
 
@@ -481,6 +498,13 @@ public class Scene1 extends JPanel {
 
                 // Check collision with player
                 if (powerup.collidesWith(player)) {
+                    try {
+                        // Play shot sound
+                        new AudioPlayer("src/audio/powerup.wav").play();
+                    } catch (Exception ex) {
+                        System.err.println("Power up sound failed: " + ex.getMessage());
+                    }
+
                     powerup.upgrade(player);
                     powerupsToRemove.add(powerup);
                 }
@@ -603,6 +627,13 @@ public class Scene1 extends JPanel {
             deaths++;
         }
         shot.die();
+
+        // Play explosion sound
+        try {
+            new AudioPlayer("src/audio/explosion.wav").play();
+        } catch (Exception ex) {
+            System.err.println("Explosion sound failed: " + ex.getMessage());
+        }
     }
 
     private void updateEnemyShots() {
@@ -691,6 +722,13 @@ public class Scene1 extends JPanel {
 
                 if (shots.size() <= maxShots - shotsToCreate) {
                     shots.addAll(player.createShots());
+
+                    try {
+                        // Play shot sound
+                        new AudioPlayer("src/audio/shot.wav").play();
+                    } catch (Exception ex) {
+                        System.err.println("Shot sound failed: " + ex.getMessage());
+                    }
                 }
             }
         }

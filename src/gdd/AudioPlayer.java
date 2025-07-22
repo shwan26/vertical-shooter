@@ -23,6 +23,8 @@ public class AudioPlayer {
     AudioInputStream audioInputStream;
     String filePath;
 
+    private boolean shouldLoop = false;
+
     // constructor to initialize streams and clip
     public AudioPlayer(String filePath)
             throws UnsupportedAudioFileException,
@@ -38,9 +40,8 @@ public class AudioPlayer {
         // open audioInputStream to the clip
         clip.open(audioInputStream);
 
-        clip.loop(Clip.LOOP_CONTINUOUSLY);
+//        clip.loop(Clip.LOOP_CONTINUOUSLY);
     }
-
     public static void main(String[] args) {
         try {
             String filePath = "src/audio/title.wav";
@@ -170,7 +171,13 @@ public class AudioPlayer {
         audioInputStream = AudioSystem.getAudioInputStream(
                 new File(filePath).getAbsoluteFile());
         clip.open(audioInputStream);
-        clip.loop(Clip.LOOP_CONTINUOUSLY);
+//        clip.loop(Clip.LOOP_CONTINUOUSLY);
+        if (shouldLoop) {
+            clip.loop(Clip.LOOP_CONTINUOUSLY);  // Only if it's music
+        }
     }
 
+    public void setLoop(boolean loop) {
+        this.shouldLoop = loop;
+    }
 }

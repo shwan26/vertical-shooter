@@ -32,6 +32,10 @@ public class Game extends JFrame  {
     }
 
     public void loadTitle() {
+        if (scene1 != null) {
+            scene1.stop(); // Stop game scene audio
+        }
+
         getContentPane().removeAll();
         // add(new Title(this));
         add(titleScene);
@@ -45,6 +49,7 @@ public class Game extends JFrame  {
     }
 
     public void loadScene2() {
+        titleScene.stop(); // Stop title scene audio
         getContentPane().removeAll();
         InfoScreen infoScreen = new InfoScreen(() -> {
             
