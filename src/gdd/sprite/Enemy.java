@@ -1,73 +1,44 @@
 package gdd.sprite;
 
-import static gdd.Global.*;
-import javax.swing.ImageIcon;
-
+/**
+ * Base class for all enemy types.
+ * Provides common enemy behavior like movement and direction handling.
+ */
 public class Enemy extends Sprite {
+    // Constants
+    protected static final int DEFAULT_SPEED = 2;
 
-    // private Bomb bomb;
+    // Fields
+    protected int direction = -1; // Movement direction (-1 = left, 1 = right)
 
     public Enemy(int x, int y) {
-
+        super();
         initEnemy(x, y);
     }
 
-    private void initEnemy(int x, int y) {
-
+    /**
+     * Initializes enemy at specified position
+     * @param x X-coordinate
+     * @param y Y-coordinate
+     */
+    protected void initEnemy(int x, int y) {
         this.x = x;
         this.y = y;
-
-        // bomb = new Bomb(x, y);
-
-        var ii = new ImageIcon(IMG_ENEMY);
-
-        // Scale the image to use the global scaling factor
-        var scaledImage = ii.getImage().getScaledInstance(ii.getIconWidth() * SCALE_FACTOR,
-                ii.getIconHeight() * SCALE_FACTOR,
-                java.awt.Image.SCALE_SMOOTH);
-        setImage(scaledImage);
     }
 
+    /**
+     * Moves enemy in specified direction
+     * @param direction Movement direction (-1 = left, 1 = right)
+     */
     public void act(int direction) {
-
-        this.x += direction;
-    }
-/* 
-    public Bomb getBomb() {
-
-        return bomb;
+        this.x += direction * DEFAULT_SPEED;
     }
 
-    public class Bomb extends Sprite {
-
-        private boolean destroyed;
-
-        public Bomb(int x, int y) {
-
-            initBomb(x, y);
-        }
-
-        private void initBomb(int x, int y) {
-
-            setDestroyed(true);
-
-            this.x = x;
-            this.y = y;
-
-            var bombImg = "src/images/bomb.png";
-            var ii = new ImageIcon(bombImg);
-            setImage(ii.getImage());
-        }
-
-        public void setDestroyed(boolean destroyed) {
-
-            this.destroyed = destroyed;
-        }
-
-        public boolean isDestroyed() {
-
-            return destroyed;
-        }
+    /**
+     * Default movement using class direction
+     */
+    @Override
+    public void act() {
+        act(direction);
     }
-*/
 }
