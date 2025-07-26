@@ -11,9 +11,9 @@ import java.util.Random;
 
 public class LaserEnemy extends Enemy {
     private static final int ANIMATION_DELAY = 8;
-    private static final int CHARGING_TIME = 180;    // 3 seconds at 60 FPS
-    private static final int FIRING_TIME = 120;      // 2 seconds of laser fire
-    private static final int COOLDOWN_TIME = 180;    // 3 seconds cooldown
+    private static final int CHARGING_TIME = 180;    
+    private static final int FIRING_TIME = 120;      
+    private static final int COOLDOWN_TIME = 180;    
     private static final float ANGLE_INCREMENT = 0.4f;
     private static final float MAX_ANGLE = 90f;
     private static final int LASER_LENGTH = 550;
@@ -22,7 +22,7 @@ public class LaserEnemy extends Enemy {
     private static final int BULLET_SPREAD_SPEED = 5;
     private static final int INVULNERABILITY_DURATION = 30;
     private static final int MAX_HEALTH = 10;
-    private static final int APPROACH_SPEED = 1; // Slower movement speed when approaching center
+    private static final int APPROACH_SPEED = 1; 
 
     // Enums
     private enum LaserState {
@@ -30,8 +30,6 @@ public class LaserEnemy extends Enemy {
             @Override
             public void handle(LaserEnemy enemy) {
                 enemy.updateApproach();
-
-                // Transition to MOVING when reaching middle of screen
                 if (enemy.x <= BOARD_WIDTH / 2) {
                     enemy.transitionTo(LaserState.MOVING);
                     enemy.circleCenterX = enemy.x;
@@ -44,7 +42,7 @@ public class LaserEnemy extends Enemy {
             public void handle(LaserEnemy enemy) {
                 enemy.updateCircularMovement();
 
-                if (enemy.stateTimer >= 180) { // Adjust time as needed
+                if (enemy.stateTimer >= 180) { 
                     enemy.transitionTo(LaserState.CHARGING);
                 }
             }

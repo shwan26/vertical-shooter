@@ -62,17 +62,24 @@ public class InfoScreen extends JPanel {
 
         g.setFont(new Font("Arial", Font.PLAIN, 14));
         int y = 100;
-        drawEntry(g, "", "Press SPACE to shoot", 80, y); y += 60;
+        drawEntry(g, "", "Press SPACE to shoot", 80, y); 
+        y += 50;
 
-        drawEntry(g, "Alien", "Alien - Drops bombs randomly.", 80, y); y += 60;
-        drawEntry(g, "Bomb", "Bomb - Move towards player (cannot be destroyed)", 80, y); y += 60;
-        drawEntry(g, "MissileEnemy", "MissileEnemy - Speeds up and tracks you.", 80, y); y += 60;
-        drawEntry(g, "QuadShotEnemy", "QuadShotEnemy - Change position randomly and fires 4 bullets", 80, y); y += 60;
-        drawEntry(g, "LaserEnemy", "LaserEnemy - Charges a deadly laser beam.", 80, y); y += 60;
+        drawEntry(g, "Alien", "Alien - Drops bombs randomly.", 80, y); 
+        y += 50;
+        drawEntry(g, "Bomb", "Bomb - Move towards player (cannot be destroyed)", 80, y); 
+        y += 50;
+        drawEntry(g, "MissileEnemy", "MissileEnemy - Speeds up and tracks you.", 80, y); 
+        y += 50;
+        drawEntry(g, "QuadShotEnemy", "QuadShotEnemy - Change position randomly and fires 4 bullets", 80, y); 
+        y += 50;
+        drawEntry(g, "LaserEnemy", "LaserEnemy - Charges a deadly laser beam.", 80, y); 
+        y += 80;
 
-        y += 30;
-        drawEntry(g, "SpeedUp", "SpeedUp - Increases movement speed.", 80, y); y += 60;
-        drawEntry(g, "MultiShot", "MultiShot - Fire multiple shots at once.", 80, y); y += 60;
+        drawEntry(g, "SpeedUp", "SpeedUp - Increases movement speed.", 80, y); 
+        y += 50;
+        drawEntry(g, "MultiShot", "MultiShot - Fire multiple shots at once.", 80, y); 
+        y += 50;
         drawEntry(g, "ThreeWayShot", "ThreeWayShot - Fire in 3 directions.", 80, y);
 
         g.setFont(new Font("Arial", Font.ITALIC, 16));

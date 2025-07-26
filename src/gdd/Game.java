@@ -3,41 +3,35 @@ package gdd;
 import gdd.scene.InfoScreen;
 import gdd.scene.Scene1;
 import gdd.scene.TitleScene;
+import gdd.scene.TutorialScene;
+
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 
-public class Game extends JFrame  {
+public class Game extends JFrame {
 
-    TitleScene titleScene;
-    Scene1 scene1;
-
-    
+    private TitleScene titleScene;
+    private Scene1 scene1;
+    private TutorialScene tutorialScene;
 
     public Game() {
         titleScene = new TitleScene(this);
         scene1 = new Scene1(this);
         initUI();
-         loadTitle();
-        //loadScene2();
+        loadTitle();
     }
 
     private void initUI() {
-
         setTitle("Space Invaders");
         setSize(Global.BOARD_WIDTH, Global.BOARD_HEIGHT);
-
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setResizable(false);
         setLocationRelativeTo(null);
-
     }
 
     public void loadTitle() {
-        if (scene1 != null) {
-            scene1.stop(); // Stop game scene audio
-        }
-
+        if (scene1 != null) scene1.stop();
         getContentPane().removeAll();
-        // add(new Title(this));
         add(titleScene);
         titleScene.start();
         revalidate();
@@ -45,29 +39,36 @@ public class Game extends JFrame  {
     }
 
     public void loadScene1() {
-        // ....
+        titleScene.stop(); 
+        getContentPane().removeAll();
+
+        InfoScreen infoScreen = new InfoScreen(() -> {
+            tutorialScene = new TutorialScene(this);
+            setScene(tutorialScene);
+        });
+
+        setScene(infoScreen);
+    }
+
+    public void setScene(JPanel panel) {
+        getContentPane().removeAll();
+        setContentPane(panel);
+        revalidate();
+        repaint();
+        panel.requestFocusInWindow();
+
+      
+        if (panel instanceof Scene1 s1) {
+            s1.start();
+        } else if (panel instanceof TutorialScene ts) {
+            ts.start();
+        } else if (panel instanceof TitleScene ts) {
+            ts.start();
+        }
     }
 
     public void loadScene2() {
-        titleScene.stop(); // Stop title scene audio
-        getContentPane().removeAll();
-        InfoScreen infoScreen = new InfoScreen(() -> {
-            
-            add(scene1);
-            scene1.start();
-            setContentPane(scene1);      // assuming you're using JFrame
-            revalidate();
-            scene1.requestFocusInWindow();
-        });
-
-        setContentPane(infoScreen);     // again, assuming JFrame usage
-        revalidate();
-        infoScreen.requestFocusInWindow();
-
-        // add(scene1);
-        // titleScene.stop();
-        // scene1.start();
-        // revalidate();
-        // repaint();
+        scene1 = new Scene1(this); // fresh game instance
+        setScene(scene1);
     }
 }

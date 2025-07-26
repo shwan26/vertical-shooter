@@ -331,28 +331,17 @@ public class Scene1 extends JPanel {
             g.setColor(Color.CYAN);
             g.drawString("THREE-WAY ACTIVE!", 10, 115);
         }
-
-        // Reset to white so next frame draws clean
         g.setColor(Color.WHITE);
 
     }
 
-    /**
-     * Main rendering method called by Swing
-     * @param g The Graphics object
-     */
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         doDrawing(g);
     }
 
-    /**
-     * Handles all drawing operations in proper order
-     * @param g The Graphics object
-     */
     private void doDrawing(Graphics g) {
-        // Clear screen
         g.setColor(Color.black);
         g.fillRect(0, 0, d.width, d.height);
 
@@ -377,7 +366,6 @@ public class Scene1 extends JPanel {
         g.setColor(Color.black);
         g.fillRect(0, 0, BOARD_WIDTH, BOARD_HEIGHT);
 
-        // Game over message
         g.setColor(new Color(0, 32, 48));
         g.fillRect(50, BOARD_HEIGHT / 2 - 30, BOARD_WIDTH - 100, 50);
         g.setColor(Color.white);
@@ -390,7 +378,7 @@ public class Scene1 extends JPanel {
                 (BOARD_WIDTH - getFontMetrics(small).stringWidth(displayMessage)) / 2,
                 BOARD_HEIGHT / 2);
 
-        // Play Again button
+ 
         showPlayAgain = true;
         g.setColor(new Color(70, 70, 200));
         g.fillRect(playAgainButton.x, playAgainButton.y, playAgainButton.width, playAgainButton.height);
@@ -452,8 +440,6 @@ public class Scene1 extends JPanel {
             int randomY = 100 + randomizer.nextInt(BOARD_HEIGHT - 200);
             powerups.add(new SpeedUp(BOARD_WIDTH, randomY));
             lastLevel = currentLevel;
-            //System.out.println("[DEBUG] Level-up powerup spawned at level " + currentLevel);
-
 
         }
 
@@ -463,8 +449,6 @@ public class Scene1 extends JPanel {
             System.out.println("[DEBUG] Initial SpeedUp spawned");
 
         }
-
-
 
     }
 
@@ -529,26 +513,21 @@ public class Scene1 extends JPanel {
         }
     }
 
-    /**
-     * Updates player state and position
-     */
+
     private void updatePlayer() {
-        player.act(); // Handle movement based on key inputs
+        player.act(); 
     }
 
-    /**
-     * Updates power-ups (movement and collisions)
-     */
     private void updatePowerUps() {
         List<PowerUp> powerupsToRemove = new ArrayList<>();
         for (PowerUp powerup : powerups) {
             if (powerup.isVisible()) {
-                powerup.act(); // Move powerup
+                powerup.act(); 
 
-                // Check collision with player
+
                 if (powerup.collidesWith(player)) {
                     try {
-                        // Play shot sound
+              
                         new AudioPlayer("src/audio/powerup.wav").play();
                     } catch (Exception ex) {
                         System.err.println("Power up sound failed: " + ex.getMessage());
@@ -558,7 +537,7 @@ public class Scene1 extends JPanel {
                     powerupsToRemove.add(powerup);
                 }
 
-                // Remove off-screen powerups
+
                 if (powerup.getX() < -50) {
                     powerupsToRemove.add(powerup);
                 }
@@ -571,14 +550,13 @@ public class Scene1 extends JPanel {
         List<Enemy> enemiesToRemove = new ArrayList<>();
         for (Enemy enemy : enemies) {
             if (enemy.isVisible()) {
-                updateSpecialEnemies(enemy); // Handle special enemy behaviors
+                updateSpecialEnemies(enemy); 
 
-                // Check collision with player
                 if (player.isVisible() && enemy.collidesWith(player)) {
                     player.setDying(true);
                     explosions.add(new Explosion(
-                            player.getX() + player.getImage().getWidth()/2 - 32, // Center X (assuming 64x64 explosion)
-                            player.getY() + player.getImage().getHeight()/2 - 32, // Center Y
+                            player.getX() + player.getImage().getWidth()/2 - 32, 
+                            player.getY() + player.getImage().getHeight()/2 - 32, 
                             true
                     ));                }
 
@@ -594,40 +572,36 @@ public class Scene1 extends JPanel {
     private void updateSpecialEnemies(Enemy enemy) {
         if (enemy instanceof MissileEnemy) {
             MissileEnemy missile = (MissileEnemy) enemy;
-            missile.update(player); // Check player proximity
-            missile.act(-1);       // Move left
+            missile.update(player);
+            missile.act(-1);      
         } else if (enemy instanceof LaserEnemy) {
             LaserEnemy laserEnemy = (LaserEnemy) enemy;
             if (laserEnemy.isLaserActive() && laserEnemy.laserCollidesWith(player)) {
                 player.setDying(true);
                 explosions.add(new Explosion(
-                        player.getX() + player.getImage().getWidth()/2 - 32, // Center X (assuming 64x64 explosion)
-                        player.getY() + player.getImage().getHeight()/2 - 32, // Center Y
+                        player.getX() + player.getImage().getWidth()/2 - 32, 
+                        player.getY() + player.getImage().getHeight()/2 - 32, 
                         true
                 ));            }
             laserEnemy.act(-1);
         } else if (enemy instanceof Alien1) {
-            // Regular enemy shooting logic
+
             Alien1 alien = (Alien1) enemy;
-            if (randomizer.nextInt(360) == 1) { // ~1 shot every 2 seconds
+            if (randomizer.nextInt(360) == 1) { 
                 handleAlienShooting(alien);
             }
-            enemy.act(-1); // Move left for regular enemies
+            enemy.act(-1);
         } else if (enemy instanceof QuadShotEnemy) {
             QuadShotEnemy quadEnemy = (QuadShotEnemy) enemy;
             quadEnemy.act(-1);
 
-            // Add any shots created this frame to the game
+           
             enemyShots.addAll(quadEnemy.getPendingShots());
         }
     }
 
-    /**
-     * Handles alien shooting logic
-     * @param alien The alien that is shooting
-     */
     private void handleAlienShooting(Alien1 alien) {
-        // Handle bomb dropping
+
         Alien1.Bomb bomb = alien.getBomb();
         if (bomb.isDestroyed()) {
             bomb = alien.new Bomb(alien.getX(), alien.getY() + 20);
@@ -635,7 +609,6 @@ public class Scene1 extends JPanel {
             bombs.add(bomb);
         }
 
-        // Handle regular shooting
         enemyShots.add(new EnemyShot(alien.getX(), alien.getY() + 20, 1));
     }
 
@@ -663,11 +636,6 @@ public class Scene1 extends JPanel {
         shots.removeAll(shotsToRemove);
     }
 
-    /**
-     * Handles when a shot hits an enemy
-     * @param enemy The enemy that was hit
-     * @param shot The shot that hit the enemy
-     */
     private void handleEnemyHit(Enemy enemy, Shot shot) {
         if (enemy instanceof LaserEnemy) {
             LaserEnemy laserEnemy = (LaserEnemy) enemy;

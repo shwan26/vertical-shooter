@@ -127,7 +127,14 @@ public class Player extends Sprite {
         if (key == KeyEvent.VK_LEFT || key == KeyEvent.VK_RIGHT) dx = 0;
     }
 
-    // Getters and Setters
+    public void reset() {
+        this.x = 100;
+        this.y = 200;
+        this.visible = true;
+       
+    }
+
+
     public int getSpeed() { return currentSpeed; }
     public int setSpeed(int speed) { return currentSpeed = Math.max(1, speed); }
     public void setMultiShotEnabled(boolean enabled) {
