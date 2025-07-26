@@ -103,8 +103,6 @@ public class TitleScene extends JPanel {
         String text = "Press SPACE to Start";
         int stringWidth = g.getFontMetrics().stringWidth(text);
         int x = (d.width - stringWidth) / 2;
-        // int stringHeight = g.getFontMetrics().getAscent();
-        // int y = (d.height + stringHeight) / 2;
         g.drawString(text, x, 600);
 
         g.setColor(Color.gray);
