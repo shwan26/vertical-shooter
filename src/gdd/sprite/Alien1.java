@@ -102,8 +102,7 @@ public class Alien1 extends Enemy {
             setDestroyed(true);
             this.x = x;
             this.y = y;
-            int[] reduceSize = {5, 5};
-            this.frames = Util.loadAnimationFrames("src/images/bomb/bomb", 3, 2,reduceSize, false);
+            this.frames = Util.loadAnimationFrames("src/images/bomb/bomb", 3, 1, false);
             setImage(frames[currentFrame]);
         }
 
