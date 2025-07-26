@@ -100,17 +100,22 @@ public class Scene1 extends JPanel {
     private void loadSpawnDetails() {
         scoreSpawnMap.put(0, List.of(new SpawnDetails("PowerUp-SpeedUp", BOARD_WIDTH, 150)));
 
-        scoreSpawnMap.put(5, List.of(
-                new SpawnDetails("PowerUp-MultiShot", BOARD_WIDTH, 180),
-                new SpawnDetails("MissileEnemy", BOARD_WIDTH, 150),
-                new SpawnDetails("MissileEnemy", BOARD_WIDTH, 250),
-                new SpawnDetails("QuadShotEnemy", BOARD_WIDTH, 300)
+        scoreSpawnMap.put(10, List.of(
+                new SpawnDetails("PowerUp-MultiShot", BOARD_WIDTH, 180)
         ));
 
-        scoreSpawnMap.put(10, List.of(
-                new SpawnDetails("PowerUp-ThreeWayShot", BOARD_WIDTH/2 + 100, 200),
-                new SpawnDetails("PowerUp-ThreeWayShot", BOARD_WIDTH/2 + 50, 300),
-                new SpawnDetails("LaserEnemy", BOARD_WIDTH, 150)
+        scoreSpawnMap.put(20, List.of(
+                new SpawnDetails("PowerUp-ThreeWayShot", BOARD_WIDTH, 200),
+                new SpawnDetails("PowerUp-ThreeWayShot", BOARD_WIDTH, 300)
+        ));
+
+        scoreSpawnMap.put(30, List.of(
+                new SpawnDetails("PowerUp-MultiShot", BOARD_WIDTH, 200),
+                new SpawnDetails("PowerUp-ThreeWayShot", BOARD_WIDTH, 500)
+        ));
+
+        scoreSpawnMap.put(50, List.of(
+                new SpawnDetails("PowerUp-ThreeWayShot", BOARD_WIDTH/2, 180)
         ));
     }
 
