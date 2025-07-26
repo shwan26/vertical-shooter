@@ -1,6 +1,8 @@
 package gdd.sprite;
 
 import gdd.util.Util;
+
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -16,7 +18,8 @@ public class Player extends Sprite {
     private static final int MULTI_SHOT_TIME = 600;
     private static final int THREE_WAY_SHOT_TIME = 800;
 
-    private BufferedImage[] frames;        
+    private BufferedImage[] frames;
+    private Exhaust exhaust;
     private int currentSpeed = 2;         
     private int dx = 0, dy = 0;            
     private boolean multiShotEnabled = false;
@@ -29,22 +32,28 @@ public class Player extends Sprite {
     }
 
     private void initPlayer() {
-        this.frames = Util.loadAnimationFrames("src/images/player/player", 2, 0);
+        int[] reduceSize = {30, 30};
+        this.frames = Util.loadAnimationFrames("src/images/playert/player", 1, 2, reduceSize, false);
         setImage(frames[currentFrame]);
         setX(START_X);
         setY(START_Y);
+        this.exhaust = new Exhaust("src/images/exhaust/exhaust5_", 4, 5, this);
     }
 
-    
     public void updateAnimation() {
         if (++animationCounter >= ANIMATION_DELAY) {
             currentFrame = (currentFrame + 1) % frames.length;
             setImage(frames[currentFrame]);
             animationCounter = 0;
         }
+
+        exhaust.update();
     }
 
-    
+    public Exhaust getExhaust() {
+        return exhaust;
+    }
+
     public List<Shot> createShots() {
         List<Shot> shots = new ArrayList<>();
 
@@ -89,6 +98,17 @@ public class Player extends Sprite {
         if (threeWayShotEnabled && --threeWayShotDuration <= 0) threeWayShotEnabled = false;
 
         updateAnimation();
+    }
+
+    @Override
+    public Rectangle getCollisionBounds() {
+        // Reduce hitbox to 60% of width and 70% of height, centered
+        int width = (int)(image.getWidth() * 0.7);
+        int height = (int)(image.getHeight() * 0.5);
+        int xOffset = (image.getWidth() - width) / 2;
+        int yOffset = (image.getHeight() - height) / 2;
+
+        return new Rectangle(x + xOffset, y + yOffset, width, height);
     }
 
     // Input Handling

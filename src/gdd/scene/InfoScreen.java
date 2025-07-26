@@ -31,10 +31,11 @@ public class InfoScreen extends JPanel {
     }
 
     private void loadImages() {
-        load("Alien", "src/images/enemy/enemy1-1.png");
-        load("Bomb", "src/images/bomb/bomb1.png");
-        load("MissileEnemy", "src/images/enemy/enemy_missile_attack1.png");
-        load("LaserEnemy", "src/images/enemy/enemy_missile1.png");
+        load("Alien", "src/images/enemyt/enemy1_1.png");
+        load("Bomb", "src/images/bomb/bomb3.png");
+        load("MissileEnemy", "src/images/enemyt/enemy2_1.png");
+        load("QuadShotEnemy", "src/images/enemyt/enemy3_1.png");
+        load("LaserEnemy", "src/images/enemyt/enemy6_1.png");
         load("SpeedUp", "src/images/powerup-s.png");
         load("MultiShot", "src/images/powerup-multishot.png");
         load("ThreeWayShot", "src/images/powerup-threeway.png");
@@ -66,6 +67,7 @@ public class InfoScreen extends JPanel {
         drawEntry(g, "Alien", "Alien - Drops bombs randomly.", 80, y); y += 60;
         drawEntry(g, "Bomb", "Bomb - Move towards player (cannot be destroyed)", 80, y); y += 60;
         drawEntry(g, "MissileEnemy", "MissileEnemy - Speeds up and tracks you.", 80, y); y += 60;
+        drawEntry(g, "QuadShotEnemy", "QuadShotEnemy - Change position randomly and fires 4 bullets", 80, y); y += 60;
         drawEntry(g, "LaserEnemy", "LaserEnemy - Charges a deadly laser beam.", 80, y); y += 60;
 
         y += 30;

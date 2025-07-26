@@ -12,11 +12,14 @@ import static gdd.Global.SCALE_FACTOR;
 
 public class Util {
 
-    public static BufferedImage[] loadAnimationFrames(String basePath, int count, int dScale) {
+    public static BufferedImage[] loadAnimationFrames(String basePath, int count, int dScale, boolean flipHorizontal) {
         BufferedImage[] frames = new BufferedImage[count];
         for (int i = 0; i < count; i++) {
             try {
                 BufferedImage raw = ImageIO.read(new File(basePath + (i + 1) + ".png"));
+                if (flipHorizontal) {
+                    raw = flipImageHorizontally(raw);
+                }
                 int scaledWidth = raw.getWidth() * (SCALE_FACTOR - dScale);
                 int scaledHeight = raw.getHeight() * (SCALE_FACTOR - dScale);
                 frames[i] = scaleImage(raw, scaledWidth, scaledHeight);
@@ -27,6 +30,39 @@ public class Util {
         }
 
         return frames;
+    }
+
+    public static BufferedImage[] loadAnimationFrames(String basePath, int count, int dScale, int[] reduceSize, boolean flipHorizontal) {
+        BufferedImage[] frames = new BufferedImage[count];
+        for (int i = 0; i < count; i++) {
+            try {
+                BufferedImage raw = ImageIO.read(new File(basePath + (i + 1) + ".png"));
+                if (flipHorizontal) {
+                    raw = flipImageHorizontally(raw);
+                }
+                int scaledWidth = (raw.getWidth() * (SCALE_FACTOR - dScale)) - reduceSize[0];
+                int scaledHeight = (raw.getHeight() * (SCALE_FACTOR - dScale)) - reduceSize[1];
+                frames[i] = scaleImage(raw, scaledWidth, scaledHeight);
+            } catch (IOException e) {
+                e.printStackTrace();
+                frames[i] = null;
+            }
+        }
+        return frames;
+    }
+
+    public static BufferedImage flipImageHorizontally(BufferedImage original) {
+        BufferedImage flipped = new BufferedImage(
+                original.getWidth(),
+                original.getHeight(),
+                original.getType()
+        );
+
+        Graphics2D g = flipped.createGraphics();
+        g.drawImage(original, original.getWidth(), 0, -original.getWidth(), original.getHeight(), null);
+        g.dispose();
+
+        return flipped;
     }
 
     public static BufferedImage scaleImage(BufferedImage src, int width, int height) {

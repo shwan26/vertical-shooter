@@ -25,6 +25,7 @@ public class MissileEnemy extends Enemy {
     private double velocityX, velocityY;   // Attack movement vector
     private int warningTimer = 0;          // Warning countdown
     private boolean showWarning = false;   // Warning visibility flag
+    private Exhaust exhaust;
 
     // ===== CONSTRUCTOR =====
     public MissileEnemy(int x, int y) {
@@ -36,9 +37,11 @@ public class MissileEnemy extends Enemy {
     @Override
     protected void initEnemy(int x, int y) {
         super.initEnemy(x, y);
-        this.idleFrames = Util.loadAnimationFrames("src/images/enemy/enemy_missile", 2, 2);
-        this.attackFrames = Util.loadAnimationFrames("src/images/enemy/enemy_missile_attack", 2, 2);
+        int[] reduceSize = {10, 10};
+        this.idleFrames = Util.loadAnimationFrames("src/images/enemyt/enemy2_", 1, 2, reduceSize, true);
+        this.attackFrames = Util.loadAnimationFrames("src/images/enemyt/enemy2_", 1, 2, reduceSize, true);
         setImage(idleFrames[currentFrame]);
+        this.exhaust = new Exhaust("src/images/exhaust/exhaust2_", 4, 5, this);
     }
 
     private void initMissileEnemy(int x, int y) {
@@ -56,6 +59,23 @@ public class MissileEnemy extends Enemy {
             setImage(currentFrames[currentFrame]);
             animationCounter = 0;
         }
+
+        exhaust.update();
+    }
+
+    @Override
+    public Rectangle getCollisionBounds() {
+        // Reduce hitbox to 70% of width and 80% of height, centered
+        int width = (int)(image.getWidth() * 0.7);
+        int height = (int)(image.getHeight() * 0.2);
+        int xOffset = (image.getWidth() - width) / 2;
+        int yOffset = (image.getHeight() - height) / 2;
+
+        return new Rectangle(x + xOffset, y + yOffset, width, height);
+    }
+
+    public Exhaust getExhaust() {
+        return exhaust;
     }
 
     /**

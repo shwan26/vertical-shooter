@@ -10,24 +10,84 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class LaserEnemy extends Enemy {
-    // Constants
     private static final int ANIMATION_DELAY = 8;
-    private static final int CHARGING_TIME = 180;    // 1.5 seconds at 60 FPS
-    private static final int FIRING_TIME = 1000;     // 2 seconds of laser fire
-    private static final int COOLDOWN_TIME = 180;   // 3 seconds cooldown
-    private static final int POSITION_THRESHOLD = 50;
+    private static final int CHARGING_TIME = 180;    // 3 seconds at 60 FPS
+    private static final int FIRING_TIME = 120;      // 2 seconds of laser fire
+    private static final int COOLDOWN_TIME = 180;    // 3 seconds cooldown
     private static final float ANGLE_INCREMENT = 0.4f;
     private static final float MAX_ANGLE = 90f;
-    private static final int LASER_LENGTH = 750;
+    private static final int LASER_LENGTH = 550;
     private static final int BULLET_SPREAD_COUNT = 8;
     private static final int BULLET_SPREAD_DELAY = 30;
     private static final int BULLET_SPREAD_SPEED = 5;
     private static final int INVULNERABILITY_DURATION = 30;
     private static final int MAX_HEALTH = 10;
+    private static final int APPROACH_SPEED = 1; // Slower movement speed when approaching center
 
     // Enums
     private enum LaserState {
-        MOVING, CHARGING, FIRING, COOLDOWN
+        APPROACHING {
+            @Override
+            public void handle(LaserEnemy enemy) {
+                enemy.updateApproach();
+
+                // Transition to MOVING when reaching middle of screen
+                if (enemy.x <= BOARD_WIDTH / 2) {
+                    enemy.transitionTo(LaserState.MOVING);
+                    enemy.circleCenterX = enemy.x;
+                    enemy.circleCenterY = enemy.y;
+                }
+            }
+        },
+        MOVING {
+            @Override
+            public void handle(LaserEnemy enemy) {
+                enemy.updateCircularMovement();
+
+                if (enemy.stateTimer >= 180) { // Adjust time as needed
+                    enemy.transitionTo(LaserState.CHARGING);
+                }
+            }
+        },
+        CHARGING {
+            @Override
+            public void handle(LaserEnemy enemy) {
+                enemy.updateCircularMovement();
+                enemy.handleChargingPhase();
+
+                if (enemy.stateTimer >= CHARGING_TIME) {
+                    enemy.transitionTo(LaserState.FIRING);
+                    enemy.laserActive = true;
+                    enemy.calculateLaserPosition();
+                }
+            }
+        },
+        FIRING {
+            @Override
+            public void handle(LaserEnemy enemy) {
+                enemy.updateCircularMovement();
+                enemy.updateFanAngle();
+
+                if (enemy.stateTimer >= FIRING_TIME) {
+                    enemy.transitionTo(LaserState.COOLDOWN);
+                    enemy.laserActive = false;
+                    enemy.currentAngle = 0f;
+                }
+            }
+        },
+        COOLDOWN {
+            @Override
+            public void handle(LaserEnemy enemy) {
+                enemy.updateCircularMovement();
+                enemy.updateBulletSpread();
+
+                if (enemy.stateTimer >= COOLDOWN_TIME) {
+                    enemy.transitionTo(LaserState.MOVING);
+                }
+            }
+        };
+
+        public abstract void handle(LaserEnemy enemy);
     }
 
     // Animation fields
@@ -36,9 +96,10 @@ public class LaserEnemy extends Enemy {
     private BufferedImage[] firingFrames;
     private int currentFrame = 0;
     private int animationCounter = 0;
+    private Exhaust exhaust;
 
     // State management
-    private LaserState currentState = LaserState.MOVING;
+    private LaserState currentState = LaserState.APPROACHING;
     private int stateTimer = 0;
     private Scene1 scene;
 
@@ -50,7 +111,7 @@ public class LaserEnemy extends Enemy {
 
     // Movement properties
     private int laserSweepDirection;
-    private float circleRadius = 150f;
+    private float circleRadius = 50f;
     private float circleSpeed = 0.8f;
     private float circleAngle = 0f;
     private int circleCenterX, circleCenterY;
@@ -65,12 +126,11 @@ public class LaserEnemy extends Enemy {
     private boolean isInvulnerable = false;
     private int invulnerabilityTimer = 0;
 
-    private int laserStartX;  // X position where laser originates
-    private int laserStartY;  // Y position where laser originates
+    private int laserStartX;
+    private int laserStartY;
 
     private final Random randomizer = new Random();
 
-    // Constructor
     public LaserEnemy(int x, int y, Scene1 scene) {
         super(x, y);
         this.scene = scene;
@@ -78,7 +138,6 @@ public class LaserEnemy extends Enemy {
         initLaserEnemy(x, y);
     }
 
-    // Initialization methods
     @Override
     protected void initEnemy(int x, int y) {
         this.x = x;
@@ -86,37 +145,47 @@ public class LaserEnemy extends Enemy {
         this.circleCenterX = x;
         this.circleCenterY = y;
 
-        idleFrames = Util.loadAnimationFrames("src/images/enemy/enemy1-", 3, 1);
-        chargingFrames = Util.loadAnimationFrames("src/images/enemy/enemy_missile", 2, 1);
-        firingFrames = Util.loadAnimationFrames("src/images/enemy/enemy_missile_attack", 2, 1);
+        idleFrames = Util.loadAnimationFrames("src/images/enemyt/enemy6_", 2, 2, true);
+        chargingFrames = Util.loadAnimationFrames("src/images/enemyt/enemy6_", 2, 2, true);
+        firingFrames = Util.loadAnimationFrames("src/images/enemyt/enemy6_", 2, 2, true);
 
         setImage(idleFrames[currentFrame]);
+        this.exhaust = new Exhaust("src/images/exhaust/exhaust6_", 4, 5, this);
     }
 
     private void initLaserEnemy(int x, int y) {
         initEnemy(x, y);
-        currentState = LaserState.MOVING;
-        stateTimer = 0;
+        transitionTo(LaserState.APPROACHING);
     }
 
-    // Update methods
+    private void transitionTo(LaserState newState) {
+        this.currentState = newState;
+        this.stateTimer = 0;
+    }
+
+    private void updateApproach() {
+        // Move left until reaching middle of screen
+        x -= APPROACH_SPEED;
+    }
+
+    private void resetPosition() {
+        this.x = BOARD_WIDTH;
+        this.circleAngle = 0f;
+        this.circleCenterX = BOARD_WIDTH;
+        this.circleCenterY = (int)(BOARD_HEIGHT * 0.3f);
+    }
+
     @Override
     public void act(int direction) {
-        debugStateInfo();
         updateInvulnerability();
-        updateCircularMovement();
-        updateState();
+        currentState.handle(this);
+        stateTimer++;
         updateAnimation();
     }
 
     @Override
     public void act() {
         act(-1);
-    }
-
-    private void debugStateInfo() {
-        System.out.printf("LaserEnemy State: %s @(%d,%d) Timer: %d%n",
-                currentState, x, y, stateTimer);
     }
 
     private void updateInvulnerability() {
@@ -132,121 +201,16 @@ public class LaserEnemy extends Enemy {
         circleAngle += circleSpeed;
         this.x = circleCenterX + (int)(circleRadius * Math.cos(Math.toRadians(circleAngle)));
         this.y = circleCenterY + (int)(circleRadius * Math.sin(Math.toRadians(circleAngle)));
-        stateTimer++;
     }
 
-    private void updateState() {
-        switch (currentState) {
-            case MOVING:    handleMovingState(); break;
-            case CHARGING:  handleChargingState(); break;
-            case FIRING:    handleFiringState(); break;
-            case COOLDOWN:  handleCooldownState(); break;
+    private void handleChargingPhase() {
+        flashTimer++;
+        if (flashTimer >= 10) {
+            chargingFlash = !chargingFlash;
+            flashTimer = 0;
         }
     }
 
-    // State handlers
-    private void handleMovingState() {
-        if (x > BOARD_WIDTH - POSITION_THRESHOLD) {
-            this.x += -1 * 2; // Always move left
-        } else {
-            currentState = LaserState.CHARGING;
-            stateTimer = 0;
-        }
-    }
-
-    private void handleChargingState() {
-        handleChargingPhase();
-        if (stateTimer >= CHARGING_TIME) {
-            currentState = LaserState.FIRING;
-            stateTimer = 0;
-            laserActive = true;
-            calculateLaserPosition();
-            
-        }
-    }
-
-    private void handleFiringState() {
-        updateFanAngle();
-        if (stateTimer >= FIRING_TIME) {
-            currentState = LaserState.COOLDOWN;
-            stateTimer = 0;
-            laserActive = false;
-            currentAngle = 0f;
-            System.out.println("FIRING LASER!");
-        }
-    }
-
-    private void handleCooldownState() {
-        updateBulletSpread();
-        if (stateTimer >= COOLDOWN_TIME) {
-            currentState = LaserState.MOVING;
-            stateTimer = 0;
-            this.x = BOARD_WIDTH;
-            System.out.println("RESTARTING CYCLE");
-        }
-    }
-
-    // Combat methods
-    public void takeDamage(ArrayList<Explosion> explosions) {
-        if (!isInvulnerable) {
-            currentHealth--;
-            isInvulnerable = true;
-            invulnerabilityTimer = INVULNERABILITY_DURATION;
-            setImage(chargingFrames[1]);
-
-            if (currentHealth <= 0) {
-                setDying(true);
-                explosions.add(new Explosion(x, y));
-                // Notify scene that we've been killed
-                if (scene != null) {
-                    scene.enemyKilled(this);
-                }
-            }
-        }
-    }
-
-    private void fireBulletSpread() {
-        if (scene == null) return;
-
-        ArrayList<EnemyShot> spreadShots = new ArrayList<>();
-        float angleStep = 360f / BULLET_SPREAD_COUNT;
-
-        for (int i = 0; i < BULLET_SPREAD_COUNT; i++) {
-            float angle = i * angleStep;
-            double dirX = Math.cos(Math.toRadians(angle));
-            double dirY = Math.sin(Math.toRadians(angle));
-
-            EnemyShot shot = new EnemyShot(
-                    x + getImage().getWidth()/2,
-                    y + getImage().getHeight()/2
-            );
-            shot.setDirection(dirX * BULLET_SPREAD_SPEED, dirY * BULLET_SPREAD_SPEED);
-            spreadShots.add(shot);
-        }
-
-        scene.addEnemyShots(spreadShots);
-    }
-
-    // Animation methods
-    public void updateAnimation() {
-        animationCounter++;
-        if (animationCounter >= ANIMATION_DELAY) {
-            BufferedImage[] currentFrames = getCurrentAnimationFrames();
-            currentFrame = (currentFrame + 1) % currentFrames.length;
-            setImage(currentFrames[currentFrame]);
-            animationCounter = 0;
-        }
-    }
-
-    private BufferedImage[] getCurrentAnimationFrames() {
-        switch (currentState) {
-            case CHARGING: return chargingFrames;
-            case FIRING: return firingFrames;
-            default: return idleFrames;
-        }
-    }
-
-    // Laser methods
     private void updateFanAngle() {
         if (increasingAngle) {
             currentAngle += ANGLE_INCREMENT;
@@ -262,14 +226,6 @@ public class LaserEnemy extends Enemy {
         laserStartY = y + (getImage().getHeight(null) / 2) - (8 / 2);
     }
 
-    private void handleChargingPhase() {
-        flashTimer++;
-        if (flashTimer >= 10) {
-            chargingFlash = !chargingFlash;
-            flashTimer = 0;
-        }
-    }
-
     private void updateBulletSpread() {
         bulletSpreadTimer++;
         if (bulletSpreadTimer >= BULLET_SPREAD_DELAY) {
@@ -278,7 +234,72 @@ public class LaserEnemy extends Enemy {
         }
     }
 
-    // Drawing methods
+    private void fireBulletSpread() {
+        if (scene == null) return;
+
+        ArrayList<EnemyShot> spreadShots = new ArrayList<>();
+        float angleStep = 360f / BULLET_SPREAD_COUNT;
+
+        for (int i = 0; i < BULLET_SPREAD_COUNT; i++) {
+            float angle = i * angleStep;
+            double dirX = Math.cos(Math.toRadians(angle));
+            double dirY = Math.sin(Math.toRadians(angle));
+
+            // Calculate starting position relative to enemy's current position
+            int shotX = x + getImage().getWidth()/2;
+            int shotY = y + getImage().getHeight()/2;
+
+            EnemyShot shot = new EnemyShot(shotX, shotY, 3);
+
+            // Set pure radial spread direction (no circular motion influence)
+            shot.setDirection(
+                    dirX * BULLET_SPREAD_SPEED,
+                    dirY * BULLET_SPREAD_SPEED
+            );
+
+            spreadShots.add(shot);
+        }
+
+        scene.addEnemyShots(spreadShots);
+    }
+
+    public void takeDamage(ArrayList<Explosion> explosions) {
+        if (!isInvulnerable) {
+            currentHealth--;
+            isInvulnerable = true;
+            invulnerabilityTimer = INVULNERABILITY_DURATION;
+            setImage(chargingFrames[1]);
+
+            if (currentHealth <= 0) {
+                setDying(true);
+                explosions.add(new Explosion(x, y));
+                if (scene != null) {
+                    scene.enemyKilled(this);
+                }
+            }
+        }
+    }
+
+    public void updateAnimation() {
+        animationCounter++;
+        if (animationCounter >= ANIMATION_DELAY) {
+            BufferedImage[] currentFrames = getCurrentAnimationFrames();
+            currentFrame = (currentFrame + 1) % currentFrames.length;
+            setImage(currentFrames[currentFrame]);
+            animationCounter = 0;
+        }
+
+        exhaust.update();
+    }
+
+    private BufferedImage[] getCurrentAnimationFrames() {
+        switch (currentState) {
+            case CHARGING: return chargingFrames;
+            case FIRING: return firingFrames;
+            default: return idleFrames;
+        }
+    }
+
     public void drawLaser(Graphics2D g2d) {
         if (!laserActive) return;
 
@@ -327,7 +348,6 @@ public class LaserEnemy extends Enemy {
         g2d.drawRect(xPos, yPos, barWidth, barHeight);
     }
 
-    // Collision detection
     public boolean laserCollidesWith(Player player) {
         if (!laserActive || player == null || !player.isVisible()) {
             return false;
@@ -355,5 +375,8 @@ public class LaserEnemy extends Enemy {
     public int getChargingTime() { return CHARGING_TIME; }
     public Rectangle getLaserBounds() {
         return laserActive ? new Rectangle(laserStartX - 800, laserStartY, 800, 8) : null;
+    }
+    public Exhaust getExhaust() {
+        return exhaust;
     }
 }

@@ -34,7 +34,7 @@ public class Explosion extends Sprite {
         String path = isPlayerExplosion ?
                 "src/images/explosion/player_explosion" :
                 "src/images/explosion/enemy_explosion";
-        this.frames = Util.loadAnimationFrames(path, 3, 1);
+        this.frames = Util.loadAnimationFrames(path, 3, 1, false);
         setImage(frames[currentFrame]);
     }
 

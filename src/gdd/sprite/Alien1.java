@@ -1,6 +1,8 @@
 package gdd.sprite;
 
 import gdd.util.Util;
+
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /**
@@ -16,6 +18,7 @@ public class Alien1 extends Enemy {
     private BufferedImage[] frames;  // Animation frames
     private int animationCounter = 0; // Animation counter
     private int bombTimer = 0;       // Bomb drop timer
+    private Exhaust exhaust;
 
     public Alien1(int x, int y) {
         super(x, y);
@@ -28,9 +31,10 @@ public class Alien1 extends Enemy {
     @Override
     protected void initEnemy(int x, int y) {
         super.initEnemy(x, y);
-        this.frames = Util.loadAnimationFrames("src/images/enemy/enemy1-", 3, 1);
+        this.frames = Util.loadAnimationFrames("src/images/enemyt/enemy1_", 1, 2, true);
         setImage(frames[currentFrame]);
         this.bomb = new Bomb(x, y);
+        this.exhaust = new Exhaust("src/images/exhaust/exhaust1_", 4, 5, this);
     }
 
     private void initAlien(int x, int y) {
@@ -46,6 +50,12 @@ public class Alien1 extends Enemy {
             setImage(frames[currentFrame]);
             animationCounter = 0;
         }
+
+        exhaust.update();
+    }
+
+    public Exhaust getExhaust() {
+        return exhaust;
     }
 
     /**
@@ -78,7 +88,7 @@ public class Alien1 extends Enemy {
      * Inner class representing bombs dropped by the alien
      */
     public class Bomb extends Sprite {
-        private static final int ANIMATION_DELAY = 5;
+        private static final int ANIMATION_DELAY = 20;
 
         private boolean destroyed;    // Destruction state
         private BufferedImage[] frames; // Animation frames
@@ -92,7 +102,8 @@ public class Alien1 extends Enemy {
             setDestroyed(true);
             this.x = x;
             this.y = y;
-            this.frames = Util.loadAnimationFrames("src/images/bomb/bomb", 8, 1);
+            int[] reduceSize = {5, 5};
+            this.frames = Util.loadAnimationFrames("src/images/bomb/bomb", 3, 2,reduceSize, false);
             setImage(frames[currentFrame]);
         }
 
@@ -108,6 +119,17 @@ public class Alien1 extends Enemy {
                 setImage(frames[currentFrame]);
                 animationCounter = 0;
             }
+        }
+
+        @Override
+        public Rectangle getCollisionBounds() {
+            // Adjust these values based on your actual collision needs
+            int width = (int)(image.getWidth() * 0.5);
+            int height = (int)(image.getHeight() * 0.5);
+            int xOffset = (image.getWidth() - width) / 2;
+            int yOffset = (image.getHeight() - height) / 2;
+
+            return new Rectangle(x + xOffset, y + yOffset, width, height);
         }
 
         // Getters and Setters

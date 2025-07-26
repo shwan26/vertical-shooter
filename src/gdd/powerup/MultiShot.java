@@ -1,14 +1,15 @@
 package gdd.powerup;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-
 import javax.imageio.ImageIO;
-
 import gdd.sprite.Player;
 
 public class MultiShot extends PowerUp {
+    private static final int WIDTH = 20;
+    private static final int HEIGHT = 20;
 
     public MultiShot(int x, int y) {
         super(x, y);
@@ -17,31 +18,29 @@ public class MultiShot extends PowerUp {
 
     private void initMultiShot() {
         try {
-            BufferedImage img = ImageIO.read(new File("src/images/powerup-multishot.png"));
-            setImage(img);
+            BufferedImage original = ImageIO.read(new File("src/images/powerup-multishot.png"));
+            // Scale image to 48x48
+            BufferedImage scaled = new BufferedImage(WIDTH, HEIGHT, original.getType());
+            Graphics2D g2d = scaled.createGraphics();
+            g2d.drawImage(original, 0, 0, WIDTH, HEIGHT, null);
+            g2d.dispose();
+            setImage(scaled);
         } catch (IOException e) {
             System.err.println("[ERROR] Failed to load MultiShot image: " + e.getMessage());
+            // Create blank 48x48 image as fallback
+            setImage(new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB));
         }
     }
 
     @Override
     public void upgrade(Player player) {
-        // Enable multi-shot capability for the player
         player.setMultiShotEnabled(true);
-
-        // Optional: You could also increase shot count or add a timer
-        // For now, we'll just enable the multi-shot capability
-
-        // Mark this power-up as collected
         setVisible(false);
     }
 
     @Override
     public void act() {
-        // Move the power-up to the left (like other sprites in the side-scrolling game)
         x -= 2;
-
-        // Remove if off-screen
         if (x < -50) {
             setVisible(false);
         }

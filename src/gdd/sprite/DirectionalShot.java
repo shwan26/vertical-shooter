@@ -21,8 +21,8 @@ public class DirectionalShot extends Shot {
     }
 
     private void initDirectionalShot(int x, int y) {
-        frames = Util.loadAnimationFrames("src/images/shot/bullet_round", 2, 1);
-        setImage(frames[currentFrame]);
+        int[] reduceSize = {10, 10};
+        this.frames = Util.loadAnimationFrames("src/images/shot/shot5_", 2, 2, reduceSize, false);        setImage(frames[currentFrame]);
         setX(x + H_SPACE);
         setY(y + V_SPACE);
         this.posX = getX();

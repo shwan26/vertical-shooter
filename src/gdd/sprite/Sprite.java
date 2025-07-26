@@ -1,5 +1,6 @@
 package gdd.sprite;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public abstract class Sprite {
@@ -45,10 +46,18 @@ public abstract class Sprite {
         if (other == null || !this.isVisible() || !other.isVisible()) return false;
         if (this.getImage() == null || other.getImage() == null) return false;
 
-        return this.getX() < other.getX() + other.getImage().getWidth() &&
-                this.getX() + this.getImage().getWidth() > other.getX() &&
-                this.getY() < other.getY() + other.getImage().getHeight() &&
-                this.getY() + this.getImage().getHeight() > other.getY();
+//        return this.getX() < other.getX() + other.getImage().getWidth() &&
+//                this.getX() + this.getImage().getWidth() > other.getX() &&
+//                this.getY() < other.getY() + other.getImage().getHeight() &&
+//                this.getY() + this.getImage().getHeight() > other.getY();
+        Rectangle thisBounds = this.getCollisionBounds();
+        Rectangle otherBounds = other.getCollisionBounds();
+        return thisBounds.intersects(otherBounds);
+    }
+
+    public Rectangle getCollisionBounds() {
+        if (image == null) return new Rectangle(x, y, 0, 0);
+        return new Rectangle(x, y, image.getWidth(), image.getHeight());
     }
 
     // Lifecycle Methods
