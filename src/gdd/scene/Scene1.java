@@ -420,8 +420,8 @@ public class Scene1 extends JPanel {
     }
 
     private int getCurrentLevel() {
-        if (deaths < 10) return 1;         // Level 1: Normal enemies only
-        else if (deaths < 20) return 2;    // Level 2: Add Missile enemies
+        if (deaths < 25) return 1;         // Level 1: Normal enemies only
+        else if (deaths < 50) return 2;    // Level 2: Add Missile enemies
         else return 3;                     // Level 3: Add Laser enemies
     }
 
