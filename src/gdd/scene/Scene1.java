@@ -315,7 +315,12 @@ public class Scene1 extends JPanel {
         g.drawString("LEVEL: " + getCurrentLevel(), 10, 15);
         g.drawString("SCORE: " + deaths, 10, 35);
         g.drawString("SPEED: " + player.getSpeed(), 10, 55);
-        g.drawString("LIVES: " + lives, 10, 75);
+        if (lives >= 0 ){
+            g.drawString("LIVES: " + lives, 10, 75);
+        } else {
+            g.setColor(Color.RED);
+            g.drawString("LIVES: 0", 10, 75);
+        }
 
 
         // Highlight power-ups
