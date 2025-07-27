@@ -21,7 +21,7 @@ public class LaserEnemy extends Enemy {
     private static final int BULLET_SPREAD_DELAY = 30;
     private static final int BULLET_SPREAD_SPEED = 5;
     private static final int INVULNERABILITY_DURATION = 30;
-    private static final int MAX_HEALTH = 10;
+    private static final int MAX_HEALTH = 15;
     private static final int APPROACH_SPEED = 1; 
 
     // Enums

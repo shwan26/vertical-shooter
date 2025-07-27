@@ -23,7 +23,7 @@ public class Scene1 extends JPanel {
     private int lives = 5;
                  
     private int deaths = 0;                    
-    private boolean inGame = true;              
+    private boolean inGame = true;
     private String message = "Game Over!";      
 
     private List<PowerUp> powerups;             
@@ -36,8 +36,9 @@ public class Scene1 extends JPanel {
     private Game game;  
     private int lastLevel = 0;    
     private boolean initialPowerupSpawned = false;
-    private int MAX_LASER_ENEMIES = 1;
+    private final int LASER_ENEMY_COUNT = 2;
     private int laserEnemySpawned = 0;
+    private int laserEnemiesKilled = 0;
 
     private final int BLOCKHEIGHT = 50;       
     private final int BLOCKWIDTH = 50;          
@@ -118,6 +119,16 @@ public class Scene1 extends JPanel {
 
         scoreSpawnMap.put(50, List.of(
                 new SpawnDetails("PowerUp-ThreeWayShot", BOARD_WIDTH/2, 180)
+        ));
+
+        scoreSpawnMap.put(70, List.of(
+                new SpawnDetails("PowerUp-ThreeWayShot", BOARD_WIDTH/2, 180),
+                new SpawnDetails("PowerUp-MultiShot", BOARD_WIDTH/2, 400)
+        ));
+
+        scoreSpawnMap.put(75, List.of(
+                new SpawnDetails("PowerUp-ThreeWayShot", BOARD_WIDTH/2, 180),
+                new SpawnDetails("PowerUp-MultiShot", BOARD_WIDTH/2, 400)
         ));
     }
 
@@ -404,82 +415,89 @@ public class Scene1 extends JPanel {
     }
 
     private void update() {
-        spawnEntities();         
-        checkWinCondition();    
-        updatePlayer();         
-        updatePowerUps();       
-        updateEnemies();        
-        updateShots();          
-        updateEnemyShots();     
-        updateBombs();          
+        spawnEntities();
+        checkWinCondition();
+        updatePlayer();
+        updatePowerUps();
+        updateEnemies();
+        updateShots();
+        updateEnemyShots();
+        updateBombs();
 
-        if (frame % 150 == 0) {
-            int randomY = 80 + randomizer.nextInt(BOARD_HEIGHT - 160);
-            enemies.add(new Alien1(BOARD_WIDTH, randomY));
+        // Only spawn regular enemies if not in level 4
+        if (getCurrentLevel() < 4) {
+            if (frame % 150 == 0) {
+                int randomY = 80 + randomizer.nextInt(BOARD_HEIGHT - 160);
+                enemies.add(new Alien1(BOARD_WIDTH, randomY));
 
-            if (getCurrentLevel() >= 2) {
-                int missileY = 80 + randomizer.nextInt(BOARD_HEIGHT - 160);
-                enemies.add(new MissileEnemy(BOARD_WIDTH, missileY));
+                if (getCurrentLevel() >= 2) {
+                    int missileY = 80 + randomizer.nextInt(BOARD_HEIGHT - 160);
+                    enemies.add(new MissileEnemy(BOARD_WIDTH, missileY));
+                }
+            }
+
+            if (getCurrentLevel() >= 3 && frame % 400 == 0) {
+                int quadY = 80 + randomizer.nextInt(BOARD_HEIGHT - 160);
+                enemies.add(new QuadShotEnemy(BOARD_WIDTH, quadY));
             }
         }
 
-        if (getCurrentLevel() >= 3 && laserEnemySpawned < MAX_LASER_ENEMIES) {
-            enemies.add(new LaserEnemy(BOARD_WIDTH, 300, this));
+        if (frame % 250 == 0 && getCurrentLevel() == 4 && laserEnemySpawned < LASER_ENEMY_COUNT) {
+            int laserY = 150 + randomizer.nextInt(250);
+            enemies.add(new LaserEnemy(BOARD_WIDTH, laserY, this));
             laserEnemySpawned++;
         }
 
-        if (frame % 400 == 0 && getCurrentLevel() >= 2) {
-            int quadY = 80 + randomizer.nextInt(BOARD_HEIGHT - 160);
-            enemies.add(new QuadShotEnemy(BOARD_WIDTH, quadY));
-        }
-
+        // Rest of the update method remains the same...
         int currentLevel = getCurrentLevel();
-        
         if (currentLevel > lastLevel) {
             powerups.clear();
             int randomY = 100 + randomizer.nextInt(BOARD_HEIGHT - 200);
             powerups.add(new SpeedUp(BOARD_WIDTH, randomY));
             lastLevel = currentLevel;
-
         }
 
         if (!initialPowerupSpawned && currentLevel == 1) {
             powerups.add(new SpeedUp(BOARD_WIDTH, 150));
             initialPowerupSpawned = true;
-            System.out.println("[DEBUG] Initial SpeedUp spawned");
-
         }
-
     }
 
     private int getCurrentLevel() {
-        if (deaths < 25) return 1;         // Level 1: Normal enemies only
+        if (deaths < 25) return 1;         // Level 1: Alien1 only
         else if (deaths < 50) return 2;    // Level 2: Add Missile enemies
-        else return 3;                     // Level 3: Add Laser enemies
+        else if (deaths < 75) return 3;    // Level 3: Add QuadShot enemies
+        else return 4;                     // Level 4: Add Laser enemies
     }
 
-    
+
     private void spawnEntities() {
-    if (spawnedScores.contains(deaths)) return;
+        if (spawnedScores.contains(deaths)) return;
 
-    List<SpawnDetails> spawns = scoreSpawnMap.get(deaths);
-        
-
+        List<SpawnDetails> spawns = scoreSpawnMap.get(deaths);
         if (spawns != null) {
             int level = getCurrentLevel();
             for (SpawnDetails sd : spawns) {
+                // Skip spawning any non-laser enemies in level 4
+                if (level >= 4 && !sd.type.equals("LaserEnemy")) {
+                    continue;
+                }
+
                 switch (sd.type) {
                     case "Alien1":
-                        enemies.add(new Alien1(sd.x, sd.y));
+                        if (level < 4) enemies.add(new Alien1(sd.x, sd.y));
                         break;
                     case "MissileEnemy":
-                        if (level >= 2) enemies.add(new MissileEnemy(sd.x, sd.y));
+                        if (level >= 2 && level < 4) enemies.add(new MissileEnemy(sd.x, sd.y));
                         break;
                     case "QuadShotEnemy":
-                        enemies.add(new QuadShotEnemy(sd.x, sd.y));
+                        if (level >= 3 && level < 4) enemies.add(new QuadShotEnemy(sd.x, sd.y));
                         break;
                     case "LaserEnemy":
-                        if (level >= 3) enemies.add(new LaserEnemy(sd.x, sd.y, this));
+                        if (level >= 4 && laserEnemySpawned < LASER_ENEMY_COUNT) {
+                            enemies.add(new LaserEnemy(sd.x, sd.y, this));
+                            laserEnemySpawned++;
+                        }
                         break;
                     case "PowerUp-SpeedUp":
                         powerups.add(new SpeedUp(sd.x, sd.y));
@@ -501,10 +519,12 @@ public class Scene1 extends JPanel {
 
 
     private void checkWinCondition() {
-        if (deaths == NUMBER_OF_ALIENS_TO_DESTROY) {
+        // Game is won when both laser enemies are killed
+        if (laserEnemiesKilled >= LASER_ENEMY_COUNT) {
             inGame = false;
             timer.stop();
             message = "Game won!";
+            gameOverSoundPlayed = true;
             try {
                 new AudioPlayer("src/audio/gamewon.wav").play();
             } catch (Exception e) {
@@ -647,25 +667,25 @@ public class Scene1 extends JPanel {
             laserEnemy.takeDamage((ArrayList<Explosion>) explosions);
 
             if (laserEnemy.isDying()) {
-                // Give 10 points for killing a LaserEnemy
                 deaths += 10;
+                laserEnemiesKilled++; // Track laser enemy kills
                 explosions.add(new Explosion(
-                        enemy.getX() + enemy.getImage().getWidth()/2 - 24, 
-                        enemy.getY() + enemy.getImage().getHeight()/2 - 24, 
+                        enemy.getX() + enemy.getImage().getWidth()/2 - 24,
+                        enemy.getY() + enemy.getImage().getHeight()/2 - 24,
                         false
                 ));
             }
         } else {
             enemy.setDying(true);
             explosions.add(new Explosion(
-                    enemy.getX() + enemy.getImage().getWidth()/2 - 24, 
-                    enemy.getY() + enemy.getImage().getHeight()/2 - 24, 
+                    enemy.getX() + enemy.getImage().getWidth()/2 - 24,
+                    enemy.getY() + enemy.getImage().getHeight()/2 - 24,
                     false
-            ));            deaths++;
+            ));
+            deaths++;
         }
         shot.die();
 
-        // Play explosion sound
         try {
             new AudioPlayer("src/audio/explosion.wav").play();
         } catch (Exception ex) {
@@ -778,15 +798,17 @@ public class Scene1 extends JPanel {
         }
     }
 
-    private void resetGame() 
-    {
+    private void resetGame() {
         frame = 0;
         lives = 5;
         deaths = 0;
         inGame = true;
         showPlayAgain = false;
+        gameOverSoundPlayed = false;
         message = "Game Over!";
         spawnedScores.clear();
+        laserEnemySpawned = 0;
+        laserEnemiesKilled = 0; // Reset laser enemy kill count
 
         enemies.clear();
         powerups.clear();
@@ -810,7 +832,6 @@ public class Scene1 extends JPanel {
         }
 
         gameOverSoundPlayed = false;
-        laserEnemySpawned = 0;
     }
 
     private void handlePlayerDeath() {
