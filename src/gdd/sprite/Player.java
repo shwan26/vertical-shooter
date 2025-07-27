@@ -27,6 +27,10 @@ public class Player extends Sprite {
     private boolean threeWayShotEnabled = false;
     private int threeWayShotDuration = 0;
 
+    private boolean invulnerable = false;
+    private int invulnerabilityTimer = 0;
+    private static final int INVULNERABILITY_DURATION = 80;
+
     public Player() {
         initPlayer();
     }
@@ -97,6 +101,13 @@ public class Player extends Sprite {
         if (multiShotEnabled && --multiShotDuration <= 0) multiShotEnabled = false;
         if (threeWayShotEnabled && --threeWayShotDuration <= 0) threeWayShotEnabled = false;
 
+        // Handle invulnerability
+        if (invulnerable) {
+            invulnerabilityTimer--;
+            if (invulnerabilityTimer <= 0) {
+                invulnerable = false;
+            }
+        }
         updateAnimation();
     }
 
@@ -147,4 +158,14 @@ public class Player extends Sprite {
         if (enabled) threeWayShotDuration = THREE_WAY_SHOT_TIME;
     }
     public boolean isThreeWayShotEnabled() { return threeWayShotEnabled; }
+    public void setInvulnerable(boolean invulnerable) {
+        this.invulnerable = invulnerable;
+        if (invulnerable) {
+            this.invulnerabilityTimer = INVULNERABILITY_DURATION;
+        }
+    }
+
+    public boolean isInvulnerable() {
+        return invulnerable;
+    }
 }
