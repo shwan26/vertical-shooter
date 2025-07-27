@@ -168,4 +168,8 @@ public class Player extends Sprite {
     public boolean isInvulnerable() {
         return invulnerable;
     }
+
+    public void addLife() {
+        
+    }
 }

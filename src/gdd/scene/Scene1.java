@@ -4,6 +4,7 @@ import gdd.AudioPlayer;
 import gdd.Game;
 import static gdd.Global.*;
 import gdd.SpawnDetails;
+import gdd.powerup.ExtraLife;
 import gdd.powerup.MultiShot;
 import gdd.powerup.PowerUp;
 import gdd.powerup.SpeedUp;
@@ -12,6 +13,7 @@ import gdd.sprite.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import javax.swing.JPanel;
@@ -169,6 +171,7 @@ public class Scene1 extends JPanel {
         bombs = new ArrayList<>();
 
         player = new Player(); // Create player 
+        player.setSpeed(2);
     }
 
     private void drawMap(Graphics g) {
@@ -420,8 +423,55 @@ public class Scene1 extends JPanel {
         }
     }
 
+    private void spawnLevelPowerUps() {
+        int level = getCurrentLevel();
+
+        if (level == 1 && !spawnedScores.contains(-1)) {
+            powerups.add(new SpeedUp(BOARD_WIDTH, 150));
+            spawnedScores.add(-1);
+        }
+
+        if (level == 2 && !spawnedScores.contains(-2)) {
+            powerups.add(new SpeedUp(BOARD_WIDTH, 180));
+            powerups.add(new MultiShot(BOARD_WIDTH, 250));
+            maybeSpawnExtraLife();
+            spawnedScores.add(-2);
+        }
+
+        if (level == 3 && !spawnedScores.contains(-3)) {
+            powerups.add(new SpeedUp(BOARD_WIDTH, 200));
+            powerups.add(new MultiShot(BOARD_WIDTH, 250));
+            powerups.add(new ThreeWayShot(BOARD_WIDTH, 300));
+            maybeSpawnExtraLife();
+            spawnedScores.add(-3);
+        }
+
+        if (level == 4 && !spawnedScores.contains(-4)) {
+            powerups.add(new SpeedUp(BOARD_WIDTH, 150));
+            powerups.add(new MultiShot(BOARD_WIDTH, 200));
+            powerups.add(new ThreeWayShot(BOARD_WIDTH, 250));
+            maybeSpawnExtraLife();
+            spawnedScores.add(-4);
+        }
+    }
+
+    private void maybeSpawnExtraLife() {
+        if (randomizer.nextBoolean()) { // 50% chance
+            int y = 100 + randomizer.nextInt(BOARD_HEIGHT - 200);
+            try {
+                powerups.add(new ExtraLife(BOARD_WIDTH, y));
+                System.out.println("Extra Life power-up spawned at (" + BOARD_WIDTH + ", " + y + ")");
+            } catch (IOException e) {
+                System.err.println("Failed to spawn Extra Life power-up: " + e.getMessage());
+                
+            }
+        }
+    }
+
+
     private void update() {
         spawnEntities();
+        spawnLevelPowerUps();
         checkWinCondition();
         updatePlayer();
         updatePowerUps();
@@ -429,6 +479,7 @@ public class Scene1 extends JPanel {
         updateShots();
         updateEnemyShots();
         updateBombs();
+        
 
         // Only spawn regular enemies if not in level 4
         if (getCurrentLevel() < 4) {
@@ -460,12 +511,8 @@ public class Scene1 extends JPanel {
             powerups.clear();
             int randomY = 100 + randomizer.nextInt(BOARD_HEIGHT - 200);
             powerups.add(new SpeedUp(BOARD_WIDTH, randomY));
+            maybeSpawnExtraLife();
             lastLevel = currentLevel;
-        }
-
-        if (!initialPowerupSpawned && currentLevel == 1) {
-            powerups.add(new SpeedUp(BOARD_WIDTH, 150));
-            initialPowerupSpawned = true;
         }
     }
 
@@ -566,6 +613,10 @@ public class Scene1 extends JPanel {
 
                     powerup.upgrade(player);
                     powerupsToRemove.add(powerup);
+                    if (powerup instanceof ExtraLife) {
+                        lives++;
+                    }
+
                 }
 
 
@@ -610,7 +661,10 @@ public class Scene1 extends JPanel {
         if (enemy instanceof MissileEnemy) {
             MissileEnemy missile = (MissileEnemy) enemy;
             missile.update(player);
-            missile.act(-1);      
+            //missile.act(-1); 
+            int enemySpeed = getEnemySpeed(); 
+            enemy.act(-enemySpeed);
+     
         } else if (enemy instanceof LaserEnemy) {
             LaserEnemy laserEnemy = (LaserEnemy) enemy;
             if (laserEnemy.isLaserActive() &&
@@ -620,21 +674,35 @@ public class Scene1 extends JPanel {
                 handlePlayerHit();
             }
             laserEnemy.act(-1);
+
         } else if (enemy instanceof Alien1) {
 
             Alien1 alien = (Alien1) enemy;
             if (randomizer.nextInt(360) == 1) { 
                 handleAlienShooting(alien);
             }
-            enemy.act(-1);
+            //enemy.act(-1);
+            int enemySpeed = getEnemySpeed(); // New method for level-based speed
+            enemy.act(-enemySpeed);
+
         } else if (enemy instanceof QuadShotEnemy) {
             QuadShotEnemy quadEnemy = (QuadShotEnemy) enemy;
-            quadEnemy.act(-1);
-
-           
+            //quadEnemy.act(-1);
+            int enemySpeed = getEnemySpeed(); // New method for level-based speed
+            enemy.act(-enemySpeed);
             enemyShots.addAll(quadEnemy.getPendingShots());
         }
     }
+
+    private int getEnemySpeed() {
+        switch (getCurrentLevel()) {
+            case 1: return 1;
+            case 2: return 2;
+            case 3: return 3;
+            default: return 2; // LaserEnemy handles its own speed
+        }
+    }
+
 
     private void handleAlienShooting(Alien1 alien) {
 
@@ -819,7 +887,7 @@ public class Scene1 extends JPanel {
         message = "Game Over!";
         spawnedScores.clear();
         laserEnemySpawned = 0;
-        laserEnemiesKilled = 0; // Reset laser enemy kill count
+        laserEnemiesKilled = 0; 
 
         enemies.clear();
         powerups.clear();
@@ -859,7 +927,7 @@ public class Scene1 extends JPanel {
 
     private void handlePlayerHit() {
         if (player.isInvulnerable() || player.isDying()) {
-            return; // Already hit recently or dying
+            return; 
         }
         player.setInvulnerable(true);
 
@@ -868,14 +936,12 @@ public class Scene1 extends JPanel {
         if (lives <= 0) {
             handlePlayerDeath();
         } else {
-            // Add hit explosion effect for non-fatal hits
             explosions.add(new Explosion(
                     player.getX() + player.getImage().getWidth()/2 - 16,
                     player.getY() + player.getImage().getHeight()/2 - 16,
                     false
             ));
 
-            // Play hit sound
             try {
                 new AudioPlayer("src/audio/explosion.wav").play();
             } catch (Exception ex) {
