@@ -62,7 +62,6 @@ public class Scene1 extends JPanel {
             40
     );
 
-    // background scrolling
     private int mapOffset = 0;
     private final int[][] MAP = {
             {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -389,10 +388,12 @@ public class Scene1 extends JPanel {
 
         Font small = new Font("Helvetica", Font.BOLD, 14);
         g.setFont(small);
-        String displayMessage = message + " Your Score: " + deaths;
+        String displayMessage = message.equals("Game won!") ? "Congratulations! You Won!" :
+        message + " Your Score: " + deaths;
         g.drawString(displayMessage,
-                (BOARD_WIDTH - getFontMetrics(small).stringWidth(displayMessage)) / 2,
-                BOARD_HEIGHT / 2);
+            (BOARD_WIDTH - getFontMetrics(small).stringWidth(displayMessage)) / 2,
+            BOARD_HEIGHT / 2);
+
 
  
         showPlayAgain = true;
@@ -524,19 +525,24 @@ public class Scene1 extends JPanel {
 
 
     private void checkWinCondition() {
-        // Game is won when both laser enemies are killed
+        // Check if all laser enemies are killed
         if (laserEnemiesKilled >= LASER_ENEMY_COUNT) {
             inGame = false;
             timer.stop();
             message = "Game won!";
             gameOverSoundPlayed = true;
+
             try {
+                if (audioPlayer != null) {
+                    audioPlayer.stop(); 
+                }
                 new AudioPlayer("src/audio/gamewon.wav").play();
             } catch (Exception e) {
                 System.out.println("Game won sound error: " + e);
             }
         }
     }
+
 
 
     private void updatePlayer() {
@@ -582,12 +588,12 @@ public class Scene1 extends JPanel {
                         enemy.collidesWith(player)) {
 
                     handlePlayerHit();
-                    // Remove enemy after collision to prevent multiple hits
+                    
                     enemiesToRemove.add(enemy);
-                    continue; // Skip off-screen check for this enemy
+                    continue; // Skip off-screen 
                 }
 
-                // Enemy off screen - only reduce life if no collision occurred
+                // Enemy off screen
                 if (enemy.getX() < -50) {
                     enemiesToRemove.add(enemy);
                     lives--;
@@ -855,8 +861,6 @@ public class Scene1 extends JPanel {
         if (player.isInvulnerable() || player.isDying()) {
             return; // Already hit recently or dying
         }
-
-        // Set player invulnerable for 2 seconds
         player.setInvulnerable(true);
 
         lives--;

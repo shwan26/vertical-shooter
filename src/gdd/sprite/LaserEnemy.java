@@ -243,13 +243,13 @@ public class LaserEnemy extends Enemy {
             double dirX = Math.cos(Math.toRadians(angle));
             double dirY = Math.sin(Math.toRadians(angle));
 
-            // Calculate starting position relative to enemy's current position
+            // Calculate shot position based on enemy's current position
             int shotX = x + getImage().getWidth()/2;
             int shotY = y + getImage().getHeight()/2;
 
             EnemyShot shot = new EnemyShot(shotX, shotY, 3);
 
-            // Set pure radial spread direction (no circular motion influence)
+            // Set radial spread direction
             shot.setDirection(
                     dirX * BULLET_SPREAD_SPEED,
                     dirY * BULLET_SPREAD_SPEED
