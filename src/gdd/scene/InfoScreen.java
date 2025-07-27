@@ -39,6 +39,7 @@ public class InfoScreen extends JPanel {
         load("SpeedUp", "src/images/powerup-s.png");
         load("MultiShot", "src/images/powerup-multishot.png");
         load("ThreeWayShot", "src/images/powerup-threeway.png");
+        load("ExtraLife", "src/images/live.png");  // ✅ Load Extra Life icon
     }
 
     private void load(String key, String path) {
@@ -62,29 +63,32 @@ public class InfoScreen extends JPanel {
 
         g.setFont(new Font("Arial", Font.PLAIN, 14));
         int y = 100;
-        drawEntry(g, "", "Press SPACE to shoot", 80, y); 
+
+        drawEntry(g, "", "Press SPACE to shoot", 80, y);
         y += 50;
 
-        drawEntry(g, "Alien", "Alien - Drops bombs randomly.", 80, y); 
+        drawEntry(g, "Alien", "Alien - Drops bombs randomly.", 80, y);
         y += 50;
-        drawEntry(g, "Bomb", "Bomb - Move towards player (cannot be destroyed)", 80, y); 
+        drawEntry(g, "Bomb", "Bomb - Moves toward player (cannot be destroyed).", 80, y);
         y += 50;
-        drawEntry(g, "MissileEnemy", "MissileEnemy - Speeds up and tracks you.", 80, y); 
+        drawEntry(g, "MissileEnemy", "MissileEnemy - Speeds up and tracks you.", 80, y);
         y += 50;
-        drawEntry(g, "QuadShotEnemy", "QuadShotEnemy - Change position randomly and fires 4 bullets", 80, y); 
+        drawEntry(g, "QuadShotEnemy", "QuadShotEnemy - Moves and fires 4 bullets.", 80, y);
         y += 50;
-        drawEntry(g, "LaserEnemy", "LaserEnemy - Charges a deadly laser beam.", 80, y); 
-        y += 80;
+        drawEntry(g, "LaserEnemy", "LaserEnemy - Charges and fires a deadly laser.", 80, y);
+        y += 70;
 
-        drawEntry(g, "SpeedUp", "SpeedUp - Increases movement speed.", 80, y); 
+        drawEntry(g, "SpeedUp", "SpeedUp - Increases movement speed.", 80, y);
         y += 50;
-        drawEntry(g, "MultiShot", "MultiShot - Fire multiple shots at once.", 80, y); 
+        drawEntry(g, "MultiShot", "MultiShot - Fires multiple shots at once.", 80, y);
         y += 50;
-        drawEntry(g, "ThreeWayShot", "ThreeWayShot - Fire in 3 directions.", 80, y);
+        drawEntry(g, "ThreeWayShot", "ThreeWayShot - Fires in 3 directions.", 80, y);
+        y += 50;
+        drawEntry(g, "ExtraLife", "Extra Life - Adds 1 life. Spawns at every level up.", 80, y); // ✅ New info
 
         g.setFont(new Font("Arial", Font.ITALIC, 16));
         g.setColor(Color.LIGHT_GRAY);
-        g.drawString("Press ENTER to begin...", 280, 600);
+        g.drawString("Press ENTER to begin...", 280, y + 50);
     }
 
     private void drawEntry(Graphics g, String key, String text, int x, int y) {
