@@ -246,8 +246,10 @@ public class Scene1 extends JPanel {
         }
     }
 
+    // In Player.java - modify drawPlayer method in Scene1
     private void drawPlayer(Graphics g) {
         if (player.isVisible()) {
+            // Draw exhaust
             if (player.getExhaust().isActive()) {
                 g.drawImage(
                         player.getExhaust().getCurrentFrame(),
@@ -257,12 +259,14 @@ public class Scene1 extends JPanel {
                 );
             }
 
-            g.drawImage(player.getImage(), player.getX(), player.getY(), this);
+            // Blink effect during invulnerability
+            if (!player.isInvulnerable() || (frame % 10 < 5)) {
+                g.drawImage(player.getImage(), player.getX(), player.getY(), this);
+            }
         }
 
         if (player.isDying()) {
             player.die();
-            // Check if all explosion animations are finished
             boolean explosionOngoing = explosions.stream().anyMatch(e -> e.isVisible());
             if (!explosionOngoing) {
                 inGame = false;
@@ -546,22 +550,22 @@ public class Scene1 extends JPanel {
         List<Enemy> enemiesToRemove = new ArrayList<>();
         for (Enemy enemy : enemies) {
             if (enemy.isVisible()) {
-                updateSpecialEnemies(enemy); 
+                updateSpecialEnemies(enemy);
 
-                if (player.isVisible() && enemy.collidesWith(player)) {
-                    player.setDying(true);
-                    explosions.add(new Explosion(
-                            player.getX() + player.getImage().getWidth()/2 - 32, 
-                            player.getY() + player.getImage().getHeight()/2 - 32, 
-                            true
-                    ));               
+                // Check collision with player
+                if (player.isVisible() && !player.isInvulnerable() &&
+                        enemy.collidesWith(player)) {
+
+                    handlePlayerHit();
+                    // Remove enemy after collision to prevent multiple hits
+                    enemiesToRemove.add(enemy);
+                    continue; // Skip off-screen check for this enemy
                 }
 
-                // enemy off screen
+                // Enemy off screen - only reduce life if no collision occurred
                 if (enemy.getX() < -50) {
                     enemiesToRemove.add(enemy);
                     lives--;
-
                     if (lives <= 0) {
                         handlePlayerDeath();
                     }
@@ -578,13 +582,12 @@ public class Scene1 extends JPanel {
             missile.act(-1);      
         } else if (enemy instanceof LaserEnemy) {
             LaserEnemy laserEnemy = (LaserEnemy) enemy;
-            if (laserEnemy.isLaserActive() && laserEnemy.laserCollidesWith(player)) {
-                player.setDying(true);
-                explosions.add(new Explosion(
-                        player.getX() + player.getImage().getWidth()/2 - 32, 
-                        player.getY() + player.getImage().getHeight()/2 - 32, 
-                        true
-                ));            }
+            if (laserEnemy.isLaserActive() &&
+                    laserEnemy.laserCollidesWith(player) &&
+                    !player.isInvulnerable()) {
+
+                handlePlayerHit();
+            }
             laserEnemy.act(-1);
         } else if (enemy instanceof Alien1) {
 
@@ -678,16 +681,18 @@ public class Scene1 extends JPanel {
                 shot.act();
 
                 // Check collision with player
-                if (player.isVisible() && shot.collidesWith(player)) {
-                    handlePlayerDeath();
+                if (player.isVisible() && !player.isInvulnerable() &&
+                        shot.collidesWith(player)) {
+                    handlePlayerHit();
                     enemyShotsToRemove.add(shot);
                 }
             } else {
                 enemyShotsToRemove.add(shot);
             }
-            }
-            enemyShots.removeAll(enemyShotsToRemove);
         }
+        enemyShots.removeAll(enemyShotsToRemove);
+    }
+
 
     private void updateBombs() {
         List<Alien1.Bomb> bombsToRemove = new ArrayList<>();
@@ -697,9 +702,9 @@ public class Scene1 extends JPanel {
                 bomb.act();
 
                 // Check collision with player
-                if (player.isVisible() && bomb.collidesWith(player)) {
-                    handlePlayerDeath();
-
+                if (player.isVisible() && !player.isInvulnerable() &&
+                        bomb.collidesWith(player)) {
+                    handlePlayerHit();
                     bombsToRemove.add(bomb);
                 }
 
@@ -809,20 +814,44 @@ public class Scene1 extends JPanel {
     }
 
     private void handlePlayerDeath() {
-    if (!player.isDying()) {
-        player.setDying(true);
-        lives--;
+        if (!player.isDying()) {
+            player.setDying(true);
 
-        explosions.add(new Explosion(
-            player.getX() + player.getImage().getWidth()/2 - 32, 
-            player.getY() + player.getImage().getHeight()/2 - 32, 
-            true
-        ));
-
-        if (lives > 0) {
-            player = new Player();
+            explosions.add(new Explosion(
+                    player.getX() + player.getImage().getWidth()/2 - 32,
+                    player.getY() + player.getImage().getHeight()/2 - 32,
+                    true
+            ));
         }
     }
-}
+
+    private void handlePlayerHit() {
+        if (player.isInvulnerable() || player.isDying()) {
+            return; // Already hit recently or dying
+        }
+
+        // Set player invulnerable for 2 seconds
+        player.setInvulnerable(true);
+
+        lives--;
+
+        if (lives <= 0) {
+            handlePlayerDeath();
+        } else {
+            // Add hit explosion effect for non-fatal hits
+            explosions.add(new Explosion(
+                    player.getX() + player.getImage().getWidth()/2 - 16,
+                    player.getY() + player.getImage().getHeight()/2 - 16,
+                    false
+            ));
+
+            // Play hit sound
+            try {
+                new AudioPlayer("src/audio/explosion.wav").play();
+            } catch (Exception ex) {
+                System.err.println("Hit sound failed: " + ex.getMessage());
+            }
+        }
+    }
 
 }
