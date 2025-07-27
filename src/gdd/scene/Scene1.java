@@ -19,7 +19,9 @@ import javax.swing.Timer;
 
 public class Scene1 extends JPanel {
 
-    private int frame = 0;                      
+    private int frame = 0;     
+    private int lives = 5;
+                 
     private int deaths = 0;                    
     private boolean inGame = true;              
     private String message = "Game Over!";      
@@ -59,8 +61,8 @@ public class Scene1 extends JPanel {
             40
     );
 
+    // background scrolling
     private int mapOffset = 0;
-    // Rotated map for horizontal scrolling (each row is now a column)
     private final int[][] MAP = {
             {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
             {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -127,7 +129,7 @@ public class Scene1 extends JPanel {
         requestFocusInWindow();
         setBackground(Color.black);
 
-        timer = new Timer(1000 / 60, new GameCycle()); // 60 FPS game loop
+        timer = new Timer(1000 / 60, new GameCycle()); 
         timer.start();
 
         gameInit();
@@ -156,13 +158,13 @@ public class Scene1 extends JPanel {
         enemyShots = new ArrayList<>();
         bombs = new ArrayList<>();
 
-        player = new Player(); // Create player instance
+        player = new Player(); // Create player 
     }
 
     private void drawMap(Graphics g) {
         int scrollOffset = (frame) % BLOCKWIDTH;
         int baseColumn = (frame) / BLOCKWIDTH;
-        int columnsNeeded = (BOARD_WIDTH / BLOCKWIDTH) + 2; // +2 for smooth scrolling
+        int columnsNeeded = (BOARD_WIDTH / BLOCKWIDTH) + 2;
 
         for (int screenCol = 0; screenCol < columnsNeeded; screenCol++) {
             int mapCol = (baseColumn + screenCol) % MAP.length;
@@ -300,10 +302,6 @@ public class Scene1 extends JPanel {
         }
     }
 
-    /**
-     * Draws all bombs
-     * @param g The Graphics object
-     */
     private void drawBombs(Graphics g) {
         for (Alien1.Bomb bomb : bombs) {
             if (bomb.isVisible()) {
@@ -312,15 +310,13 @@ public class Scene1 extends JPanel {
         }
     }
 
-    /**
-     * Draws the game dashboard with player stats
-     * @param g The Graphics object
-     */
     private void drawDashboard(Graphics g) {
         g.setColor(Color.WHITE);
         g.drawString("LEVEL: " + getCurrentLevel(), 10, 15);
         g.drawString("SCORE: " + deaths, 10, 35);
         g.drawString("SPEED: " + player.getSpeed(), 10, 55);
+        g.drawString("LIVES: " + lives, 10, 75);
+
 
         // Highlight power-ups
         if (player.isMultiShotEnabled()) {
@@ -558,11 +554,17 @@ public class Scene1 extends JPanel {
                             player.getX() + player.getImage().getWidth()/2 - 32, 
                             player.getY() + player.getImage().getHeight()/2 - 32, 
                             true
-                    ));                }
+                    ));               
+                }
 
-                // Remove off-screen enemies
+                // enemy off screen
                 if (enemy.getX() < -50) {
                     enemiesToRemove.add(enemy);
+                    lives--;
+
+                    if (lives <= 0) {
+                        handlePlayerDeath();
+                    }
                 }
             }
         }
@@ -645,18 +647,18 @@ public class Scene1 extends JPanel {
                 // Give 10 points for killing a LaserEnemy
                 deaths += 10;
                 explosions.add(new Explosion(
-                        enemy.getX() + enemy.getImage().getWidth()/2 - 24, // Center X (assuming 48x48 explosion)
-                        enemy.getY() + enemy.getImage().getHeight()/2 - 24, // Center Y
+                        enemy.getX() + enemy.getImage().getWidth()/2 - 24, 
+                        enemy.getY() + enemy.getImage().getHeight()/2 - 24, 
                         false
                 ));
             }
         } else {
             enemy.setDying(true);
             explosions.add(new Explosion(
-                    enemy.getX() + enemy.getImage().getWidth()/2 - 24, // Center X (assuming 48x48 explosion)
-                    enemy.getY() + enemy.getImage().getHeight()/2 - 24, // Center Y
+                    enemy.getX() + enemy.getImage().getWidth()/2 - 24, 
+                    enemy.getY() + enemy.getImage().getHeight()/2 - 24, 
                     false
-            ));            deaths++; // Regular enemies give 1 point
+            ));            deaths++;
         }
         shot.die();
 
@@ -677,19 +679,15 @@ public class Scene1 extends JPanel {
 
                 // Check collision with player
                 if (player.isVisible() && shot.collidesWith(player)) {
-                    player.setDying(true);
-                    explosions.add(new Explosion(
-                            player.getX() + player.getImage().getWidth()/2 - 32, // Center X (assuming 64x64 explosion)
-                            player.getY() + player.getImage().getHeight()/2 - 32, // Center Y
-                            true
-                    ));                    enemyShotsToRemove.add(shot);
+                    handlePlayerDeath();
+                    enemyShotsToRemove.add(shot);
                 }
             } else {
                 enemyShotsToRemove.add(shot);
             }
+            }
+            enemyShots.removeAll(enemyShotsToRemove);
         }
-        enemyShots.removeAll(enemyShotsToRemove);
-    }
 
     private void updateBombs() {
         List<Alien1.Bomb> bombsToRemove = new ArrayList<>();
@@ -700,12 +698,8 @@ public class Scene1 extends JPanel {
 
                 // Check collision with player
                 if (player.isVisible() && bomb.collidesWith(player)) {
-                    player.setDying(true);
-                    explosions.add(new Explosion(
-                            player.getX() + player.getImage().getWidth()/2 - 32, // Center X (assuming 64x64 explosion)
-                            player.getY() + player.getImage().getHeight()/2 - 32, // Center Y
-                            true
-                    ));
+                    handlePlayerDeath();
+
                     bombsToRemove.add(bomb);
                 }
 
@@ -779,16 +773,16 @@ public class Scene1 extends JPanel {
         }
     }
 
-    private void resetGame() {
-        // Reset game state
+    private void resetGame() 
+    {
         frame = 0;
+        lives = 5;
         deaths = 0;
         inGame = true;
         showPlayAgain = false;
         message = "Game Over!";
         spawnedScores.clear();
 
-        // Clear all entities
         enemies.clear();
         powerups.clear();
         explosions.clear();
@@ -796,15 +790,12 @@ public class Scene1 extends JPanel {
         enemyShots.clear();
         bombs.clear();
 
-        // Reinitialize game
         gameInit();
 
-        // Restart timer if needed
         if (!timer.isRunning()) {
             timer.start();
         }
 
-        // Restart music
         try {
             audioPlayer = new AudioPlayer("src/audio/scene1.wav");
             audioPlayer.setLoop(true);
@@ -816,4 +807,22 @@ public class Scene1 extends JPanel {
         gameOverSoundPlayed = false;
         laserEnemySpawned = 0;
     }
+
+    private void handlePlayerDeath() {
+    if (!player.isDying()) {
+        player.setDying(true);
+        lives--;
+
+        explosions.add(new Explosion(
+            player.getX() + player.getImage().getWidth()/2 - 32, 
+            player.getY() + player.getImage().getHeight()/2 - 32, 
+            true
+        ));
+
+        if (lives > 0) {
+            player = new Player();
+        }
+    }
+}
+
 }
