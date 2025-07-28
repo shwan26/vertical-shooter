@@ -55,17 +55,24 @@ public class Scene2 extends JPanel {
             enemies.add(new LaserEnemy(BOARD_WIDTH, y, this));
         }
 
-        try {
-            audioPlayer = new AudioPlayer("src/audio/scene2.wav");
-            audioPlayer.setLoop(true);
-            audioPlayer.play();
-        } catch (IOException | UnsupportedAudioFileException | LineUnavailableException e) {
-            System.err.println("Scene2 audio error: " + e.getMessage());
-        }
+        // Play warning sound before background music
+        new Thread(() -> {
+            try {
+                AudioPlayer warning = new AudioPlayer("src/audio/scene2_warning.wav");
+                warning.play();
+                Thread.sleep(2500); // wait for warning sound to finish
+                audioPlayer = new AudioPlayer("src/audio/scene2.wav");
+                audioPlayer.setLoop(true);
+                audioPlayer.play();
+            } catch (Exception e) {
+                System.err.println("Scene2 audio error: " + e.getMessage());
+            }
+        }).start();
 
         timer = new Timer(1000 / 60, event -> gameCycle());
         timer.start();
     }
+
 
     private void gameCycle() {
         frame++;
