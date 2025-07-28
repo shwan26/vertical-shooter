@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Random;
 
 public class Scene2 extends JPanel {
-    private final int LASER_ENEMY_COUNT = 3;
+    private final int LASER_ENEMY_COUNT = 2;
     private final int BOARD_WIDTH = Global.BOARD_WIDTH;
     private final int BOARD_HEIGHT = Global.BOARD_HEIGHT;
 
@@ -40,6 +40,7 @@ public class Scene2 extends JPanel {
     private Timer timer;
     private Random random = new Random();
     private boolean powerUpOnScreen = false;
+    private boolean gameOver = false;
 
     private AudioPlayer audioPlayer;
 
@@ -123,6 +124,9 @@ public class Scene2 extends JPanel {
         List<LaserEnemy> toRemove = new ArrayList<>();
         for (LaserEnemy le : enemies) {
             le.act(-1);
+            if (le.getChargeLevel() >= le.getMaxChargeLevel() && !le.isDying()) {
+                le.restoreHealth();
+            }
             if (le.isLaserActive() && le.laserCollidesWith(player)) {
                 if (!player.isInvulnerable()) {
                     handlePlayerHit();
@@ -169,6 +173,7 @@ public class Scene2 extends JPanel {
             ));
 
             inGame = false;
+            gameOver = true;
             timer.stop();
 
             try {
@@ -207,7 +212,9 @@ public class Scene2 extends JPanel {
                 continue;
             }
             if (s.collidesWith(player)) {
-                // Handle player damage
+                if (!player.isInvulnerable()) {
+                    handlePlayerHit();
+                }
                 toRemove.add(s);
             }
         }
@@ -297,6 +304,8 @@ public class Scene2 extends JPanel {
         if (inGame) {
             drawGame(g);
             drawDashboard(g);
+        } else if (gameOver) {
+            drawGameOverScreen(g);
         } else {
             drawWinScreen(g);
         }
@@ -416,15 +425,12 @@ public class Scene2 extends JPanel {
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, BOARD_WIDTH, BOARD_HEIGHT);
 
-        // Background rectangle box
         g.setColor(new Color(0, 48, 32));
         g.fillRect(50, BOARD_HEIGHT / 2 - 30, BOARD_WIDTH - 100, 50);
 
-        // Border
         g.setColor(Color.WHITE);
         g.drawRect(50, BOARD_HEIGHT / 2 - 30, BOARD_WIDTH - 100, 50);
 
-        // Text
         Font messageFont = new Font("Helvetica", Font.BOLD, 16);
         g.setFont(messageFont);
         String winText = "Congratulations! You Won! Press ESC to Exit";
@@ -432,6 +438,22 @@ public class Scene2 extends JPanel {
         g.drawString(winText, (BOARD_WIDTH - textWidth) / 2, BOARD_HEIGHT / 2);
     }
 
+    private void drawGameOverScreen(Graphics g) {
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, BOARD_WIDTH, BOARD_HEIGHT);
+
+        g.setColor(new Color(48, 0, 0));
+        g.fillRect(50, BOARD_HEIGHT / 2 - 30, BOARD_WIDTH - 100, 50);
+
+        g.setColor(Color.WHITE);
+        g.drawRect(50, BOARD_HEIGHT / 2 - 30, BOARD_WIDTH - 100, 50);
+
+        Font messageFont = new Font("Helvetica", Font.BOLD, 16);
+        g.setFont(messageFont);
+        String hintText = "Try Again! Press 9 to Retry, 0 to Restart";
+        int textWidth = g.getFontMetrics(messageFont).stringWidth(hintText);
+        g.drawString(hintText, (BOARD_WIDTH - textWidth) / 2, BOARD_HEIGHT / 2);
+    }
 
     private class TAdapter extends KeyAdapter {
         @Override
@@ -445,9 +467,16 @@ public class Scene2 extends JPanel {
                 } catch (IOException | UnsupportedAudioFileException | LineUnavailableException ex) {
                     System.err.println("Shot sound failed");
                 }
-            } else if (!inGame && e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                System.exit(0);
+            } else if (!inGame) {
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    System.exit(0);
+                } else if (e.getKeyCode() == KeyEvent.VK_9) { // Retry
+                    game.loadScene3();
+                } else if (e.getKeyCode() == KeyEvent.VK_0) { // Restart
+                    game.loadScene1(); 
+                }
             }
+
         }
 
         @Override

@@ -377,4 +377,25 @@ public class LaserEnemy extends Enemy {
     public Exhaust getExhaust() {
         return exhaust;
     }
+
+    public void restoreHealth() {
+        if (currentHealth < MAX_HEALTH) {
+            currentHealth = MAX_HEALTH;
+            isInvulnerable = true;
+            invulnerabilityTimer = 30;
+
+            flashTimer = 0;
+            chargingFlash = true;
+        }
+    }
+
+    public int getChargeLevel() {
+        return (currentState == LaserState.CHARGING) ? stateTimer : 0;
+    }
+
+    public int getMaxChargeLevel() {
+        return CHARGING_TIME;
+    }
+
+
 }
