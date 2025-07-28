@@ -93,7 +93,6 @@ public class Scene1 extends JPanel {
         this.game = game;
         spawnedScores = new HashSet<>();
         loadSpawnDetails();
-        addMouseListener(new MouseHandler());
     }
 
     private void initAudio() {
@@ -441,20 +440,13 @@ public class Scene1 extends JPanel {
             (BOARD_WIDTH - getFontMetrics(small).stringWidth(displayMessage)) / 2,
             BOARD_HEIGHT / 2);
 
+        Font hintFont = new Font("Helvetica", Font.PLAIN, 14);
+        g.setFont(hintFont);
+        String hintText = "Press 9 to Retry, 0 to Restart";
+        g.drawString(hintText,
+            (BOARD_WIDTH - g.getFontMetrics(hintFont).stringWidth(hintText)) / 2,
+            playAgainButton.y + playAgainButton.height + 30);
 
- 
-        showPlayAgain = true;
-        g.setColor(new Color(70, 70, 200));
-        g.fillRect(playAgainButton.x, playAgainButton.y, playAgainButton.width, playAgainButton.height);
-        g.setColor(Color.white);
-        g.drawRect(playAgainButton.x, playAgainButton.y, playAgainButton.width, playAgainButton.height);
-
-        Font buttonFont = new Font("Helvetica", Font.BOLD, 16);
-        g.setFont(buttonFont);
-        String buttonText = "PLAY AGAIN";
-        g.drawString(buttonText,
-                playAgainButton.x + (playAgainButton.width - g.getFontMetrics().stringWidth(buttonText))/2,
-                playAgainButton.y + 25);
 
         if (!gameOverSoundPlayed) {
             try {
@@ -622,6 +614,7 @@ public class Scene1 extends JPanel {
             inGame = false;
             timer.stop();
             message = "Game won!";
+            showPlayAgain = true;
             gameOverSoundPlayed = true;
 
             try {
@@ -910,29 +903,32 @@ public class Scene1 extends JPanel {
                     }
                 }
             }
-        }
-    }
 
-    private class MouseHandler extends MouseAdapter {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            if (!inGame && showPlayAgain && playAgainButton.contains(e.getPoint())) {
-                resetGame();
+            // Retry (9) or Restart (0) when game is over
+            if (!inGame && showPlayAgain) {
+                if (e.getKeyCode() == KeyEvent.VK_9) {
+                    int currentLevel = getCurrentLevel();
+                    resetGameToLevel(getLevelStartDeaths(currentLevel));
+                } else if (e.getKeyCode() == KeyEvent.VK_0) {
+                    resetGameToLevel(0);
+                }
             }
+
         }
     }
 
-    private void resetGame() {
+
+    private void resetGameToLevel(int levelStartDeaths) {
         frame = 0;
         lives = 5;
-        deaths = 0;
+        deaths = levelStartDeaths;
         inGame = true;
         showPlayAgain = false;
         gameOverSoundPlayed = false;
         message = "Game Over!";
         spawnedScores.clear();
         laserEnemySpawned = 0;
-        laserEnemiesKilled = 0; 
+        laserEnemiesKilled = 0;
 
         enemies.clear();
         powerups.clear();
@@ -954,9 +950,8 @@ public class Scene1 extends JPanel {
         } catch (Exception e) {
             System.err.println("Error restarting audio: " + e.getMessage());
         }
-
-        gameOverSoundPlayed = false;
     }
+
 
     private void handlePlayerDeath() {
         if (!player.isDying()) {
@@ -967,6 +962,9 @@ public class Scene1 extends JPanel {
                     player.getY() + player.getImage().getHeight()/2 - 32,
                     true
             ));
+
+            inGame = false;
+            showPlayAgain = true;
         }
     }
 
@@ -994,5 +992,15 @@ public class Scene1 extends JPanel {
             }
         }
     }
+
+    private int getLevelStartDeaths(int level) {
+    switch (level) {
+        case 1: return 0;
+        case 2: return 30;
+        case 3: return 60;
+        case 4: return 100;
+        default: return 0;
+    }
+}
 
 }
