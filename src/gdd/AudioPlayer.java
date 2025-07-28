@@ -100,11 +100,17 @@ public class AudioPlayer {
 
     // Method to play the audio
     public void play() {
-        //start the clip
-        clip.start();
+        if (clip != null) {
+            if (shouldLoop) {
+                clip.loop(Clip.LOOP_CONTINUOUSLY);
+            } else {
+                clip.loop(0);
+            }
+            clip.start();
+            status = "play";
+            }
+        }
 
-        status = "play";
-    }
 
 
     // Method to pause the audio
@@ -178,6 +184,10 @@ public class AudioPlayer {
     }
 
     public void setLoop(boolean loop) {
-        this.shouldLoop = loop;
+    this.shouldLoop = loop;
+    if (clip != null && clip.isOpen()) {
+        clip.loop(loop ? Clip.LOOP_CONTINUOUSLY : 0);
     }
+}
+
 }
