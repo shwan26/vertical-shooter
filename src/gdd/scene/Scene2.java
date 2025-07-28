@@ -39,7 +39,29 @@ public class Scene2 extends JPanel {
     private int frame = 0;
     private Timer timer;
     private Random random = new Random();
+    private boolean powerUpOnScreen = false;
+
     private AudioPlayer audioPlayer;
+
+    private final int[][] MAP = {
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}
+    };
+
+    private final int BLOCK_WIDTH = 50;
+    private final int BLOCK_HEIGHT = 50;
+    private int mapOffset = 0;
+
 
     public Scene2(Game game) {
         this.game = game;
@@ -158,8 +180,6 @@ public class Scene2 extends JPanel {
         }
     }
 
-
-
     private void updateShots() {
         List<Shot> toRemove = new ArrayList<>();
         for (Shot s : shots) {
@@ -198,33 +218,64 @@ public class Scene2 extends JPanel {
         List<PowerUp> toRemove = new ArrayList<>();
         for (PowerUp p : powerUps) {
             p.act();
+
             if (p.collidesWith(player)) {
                 if (p instanceof ExtraLife) {
-                    player.addLife(); // Or your actual method to add a life
+                    lives++;
+                } else {
+                    p.upgrade(player); // Upgrade logic already in PowerUp subclasses
                 }
+
                 toRemove.add(p);
+                powerUpOnScreen = false;
+
                 try {
                     new AudioPlayer("src/audio/powerup.wav").play();
                 } catch (IOException | UnsupportedAudioFileException | LineUnavailableException ex) {
                     System.err.println("PowerUp sound failed");
                 }
+            } else if (p.getX() < -50) { // Off-screen
+                toRemove.add(p);
+                powerUpOnScreen = false;
             }
-
         }
         powerUps.removeAll(toRemove);
     }
 
+
     private void spawnRandomPowerUps() {
-        if (frame % 300 == 0 && random.nextDouble() < 0.4) {
+        if (!powerUpOnScreen && frame % 300 == 0 && random.nextDouble() < 0.5) {
             int x = BOARD_WIDTH + 50;
             int y = 50 + random.nextInt(BOARD_HEIGHT - 100);
+
+            PowerUp newPowerUp = null;
+            int type = random.nextInt(4); 
+
             try {
-                powerUps.add(new ExtraLife(x, y));
+                switch (type) {
+                    case 0:
+                        newPowerUp = new ExtraLife(x, y);
+                        break;
+                    case 1:
+                        newPowerUp = new SpeedUp(x, y);
+                        break;
+                    case 2:
+                        newPowerUp = new MultiShot(x, y);
+                        break;
+                    case 3:
+                        newPowerUp = new ThreeWayShot(x, y);
+                        break;
+                }
+                if (newPowerUp != null) {
+                    powerUps.add(newPowerUp);
+                    powerUpOnScreen = true;
+                }
             } catch (IOException e) {
-                e.printStackTrace();
+                System.err.println("Failed to spawn power-up: " + e.getMessage());
             }
         }
-    }
+}
+
 
     private void checkWinCondition() {
         if (laserEnemiesKilled >= LASER_ENEMY_COUNT) {
@@ -242,6 +293,7 @@ public class Scene2 extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        drawMap(g);
         if (inGame) {
             drawGame(g);
             drawDashboard(g);
@@ -249,6 +301,39 @@ public class Scene2 extends JPanel {
             drawWinScreen(g);
         }
     }
+
+    private void drawMap(Graphics g) {
+        int scrollOffset = frame % BLOCK_WIDTH;
+        int baseColumn = (frame / BLOCK_WIDTH) % MAP[0].length; // columns: 24
+        int columnsNeeded = (BOARD_WIDTH / BLOCK_WIDTH) + 2;
+
+        for (int screenCol = 0; screenCol < columnsNeeded; screenCol++) {
+            int mapCol = (baseColumn + screenCol) % MAP[0].length; // MAP[0].length = 24
+            int x = BOARD_WIDTH - ((screenCol * BLOCK_WIDTH) - scrollOffset);
+
+            if (x < -BLOCK_WIDTH || x > BOARD_WIDTH) continue;
+
+            for (int row = 0; row < MAP.length; row++) { // rows: 12
+                if (MAP[row][mapCol] == 1) {
+                    int y = row * BLOCK_HEIGHT;
+                    drawStarCluster(g, x, y, BLOCK_WIDTH, BLOCK_HEIGHT);
+                }
+            }
+        }
+    }
+
+
+    private void drawStarCluster(Graphics g, int x, int y, int width, int height) {
+        g.setColor(Color.WHITE);
+        int centerX = x + width / 2;
+        int centerY = y + height / 2;
+        g.fillOval(centerX - 2, centerY - 2, 4, 4); // Main star
+        g.fillOval(centerX - 10, centerY + 5, 2, 2);
+        g.fillOval(centerX + 8, centerY - 8, 2, 2);
+        g.fillOval(centerX - 5, centerY - 12, 1, 1);
+        g.fillOval(centerX + 10, centerY + 12, 1, 1);
+    }
+
 
     private void drawGame(Graphics g) {
         g.drawImage(player.getImage(), player.getX(), player.getY(), this);
@@ -309,9 +394,23 @@ public class Scene2 extends JPanel {
     private void drawWinScreen(Graphics g) {
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, BOARD_WIDTH, BOARD_HEIGHT);
-        g.setColor(Color.GREEN);
-        g.drawString("YOU WON! Press ESC to Exit", BOARD_WIDTH / 2 - 80, BOARD_HEIGHT / 2);
+
+        // Background rectangle box
+        g.setColor(new Color(0, 48, 32));
+        g.fillRect(50, BOARD_HEIGHT / 2 - 30, BOARD_WIDTH - 100, 50);
+
+        // Border
+        g.setColor(Color.WHITE);
+        g.drawRect(50, BOARD_HEIGHT / 2 - 30, BOARD_WIDTH - 100, 50);
+
+        // Text
+        Font messageFont = new Font("Helvetica", Font.BOLD, 16);
+        g.setFont(messageFont);
+        String winText = "Congratulations! You Won! Press ESC to Exit";
+        int textWidth = g.getFontMetrics(messageFont).stringWidth(winText);
+        g.drawString(winText, (BOARD_WIDTH - textWidth) / 2, BOARD_HEIGHT / 2);
     }
+
 
     private class TAdapter extends KeyAdapter {
         @Override

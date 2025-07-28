@@ -768,7 +768,6 @@ public class Scene1 extends JPanel {
                     }
                 }
 
-                // Move shot and check if off-screen
                 shot.act();
                 if (shot.getX() > BOARD_WIDTH) {
                     shotsToRemove.add(shot);
@@ -785,7 +784,7 @@ public class Scene1 extends JPanel {
 
             if (laserEnemy.isDying()) {
                 deaths += 10;
-                laserEnemiesKilled++; // Track laser enemy kills
+                laserEnemiesKilled++; 
                 explosions.add(new Explosion(
                         enemy.getX() + enemy.getImage().getWidth()/2 - 24,
                         enemy.getY() + enemy.getImage().getHeight()/2 - 24,
@@ -994,13 +993,13 @@ public class Scene1 extends JPanel {
     }
 
     private int getLevelStartDeaths(int level) {
-    switch (level) {
-        case 1: return 0;
-        case 2: return 30;
-        case 3: return 60;
-        case 4: return 100;
-        default: return 0;
+        switch (level) {
+            case 1: return 0;
+            case 2: return 30;
+            case 3: return 60;
+            case 4: return 100;
+            default: return 0;
+        }
     }
-}
 
 }
