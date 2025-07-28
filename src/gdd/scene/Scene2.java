@@ -20,6 +20,13 @@ public class Scene2 extends JPanel {
     private final int BOARD_WIDTH = Global.BOARD_WIDTH;
     private final int BOARD_HEIGHT = Global.BOARD_HEIGHT;
 
+    private int lives = 5;
+    private int deaths = 100; 
+    private final int LEVEL_BAR_X = 100;
+    private final int LEVEL_BAR_Y = 10;
+    private final int LEVEL_BAR_WIDTH = 200;
+    private final int LEVEL_BAR_HEIGHT = 10;
+
     private Game game;
     private Player player;
     private List<LaserEnemy> enemies;
@@ -95,7 +102,9 @@ public class Scene2 extends JPanel {
         for (LaserEnemy le : enemies) {
             le.act(-1);
             if (le.isLaserActive() && le.laserCollidesWith(player)) {
-                // Handle damage if needed
+                if (!player.isInvulnerable()) {
+                    handlePlayerHit();
+                }
             }
             if (le.isDying()) {
                 toRemove.add(le);
@@ -105,6 +114,52 @@ public class Scene2 extends JPanel {
         laserEnemiesKilled += toRemove.size();
     }
 
+    private void handlePlayerHit() {
+        if (player.isInvulnerable() || player.isDying()) return;
+
+        player.setInvulnerable(true);
+        lives--;
+
+        explosions.add(new Explosion(
+            player.getX() + player.getImage().getWidth()/2 - 16,
+            player.getY() + player.getImage().getHeight()/2 - 16,
+            false
+        ));
+
+        try {
+            new AudioPlayer("src/audio/explosion.wav").play();
+        } catch (Exception e) {
+            System.err.println("Explosion sound error: " + e.getMessage());
+        }
+
+        if (lives <= 0) {
+            handlePlayerDeath();
+        }
+    }
+
+    private void handlePlayerDeath() {
+        if (!player.isDying()) {
+            player.setDying(true);
+            explosions.add(new Explosion(
+                player.getX() + player.getImage().getWidth()/2 - 32,
+                player.getY() + player.getImage().getHeight()/2 - 32,
+                true
+            ));
+
+            inGame = false;
+            timer.stop();
+
+            try {
+                if (audioPlayer != null) audioPlayer.stop();
+                new AudioPlayer("src/audio/gameover.wav").play();
+            } catch (Exception e) {
+                System.err.println("Game over sound error: " + e.getMessage());
+            }
+        }
+    }
+
+
+
     private void updateShots() {
         List<Shot> toRemove = new ArrayList<>();
         for (Shot s : shots) {
@@ -112,6 +167,9 @@ public class Scene2 extends JPanel {
             for (LaserEnemy e : enemies) {
                 if (s.collidesWith(e)) {
                     e.takeDamage((ArrayList<Explosion>) explosions);
+                    if (e.isDying()) {
+                        deaths += 10;
+                    }
                     toRemove.add(s);
                     break;
                 }
@@ -186,15 +244,13 @@ public class Scene2 extends JPanel {
         super.paintComponent(g);
         if (inGame) {
             drawGame(g);
+            drawDashboard(g);
         } else {
             drawWinScreen(g);
         }
     }
 
     private void drawGame(Graphics g) {
-        g.setColor(Color.WHITE);
-        g.drawString("FINAL STAGE", 10, 20);
-        g.drawString("Laser Enemies Left: " + (LASER_ENEMY_COUNT - laserEnemiesKilled), 10, 40);
         g.drawImage(player.getImage(), player.getX(), player.getY(), this);
 
         for (LaserEnemy e : enemies) {
@@ -223,6 +279,32 @@ public class Scene2 extends JPanel {
             }
         }
     }
+
+    private void drawDashboard(Graphics g) {
+        g.setColor(Color.WHITE);
+        g.drawString("LEVEL: 4", 10, 15);
+        g.drawString("SCORE: " + deaths, 10, 35);
+        g.drawString("SPEED: " + player.getSpeed(), 10, 55);
+        g.drawString("LIVES: " + Math.max(0, lives), 10, 75);
+
+        if (player.isMultiShotEnabled()) {
+            g.setColor(Color.YELLOW);
+            g.drawString("MULTI-SHOT ACTIVE!", 10, 95);
+        }
+        if (player.isThreeWayShotEnabled()) {
+            g.setColor(Color.CYAN);
+            g.drawString("THREE-WAY ACTIVE!", 10, 115);
+        }
+
+        g.setColor(Color.WHITE);
+
+        // Level progress bar is always full in level 4
+        g.setColor(Color.DARK_GRAY);
+        g.fillRect(LEVEL_BAR_X, LEVEL_BAR_Y, LEVEL_BAR_WIDTH, LEVEL_BAR_HEIGHT);
+        g.setColor(Color.GREEN);
+        g.fillRect(LEVEL_BAR_X, LEVEL_BAR_Y, LEVEL_BAR_WIDTH, LEVEL_BAR_HEIGHT);
+    }
+
 
     private void drawWinScreen(Graphics g) {
         g.setColor(Color.BLACK);
