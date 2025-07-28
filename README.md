@@ -1,6 +1,6 @@
 # Space Invaders - 2D Space Shooter Game
 
-Space Invader Game is a 2D side-scrolling space shooter game built with Java and Swing. The player controls a spaceship, fights against waves of enemy ships, collects power-ups, and progresses through multiple levels to defeat powerful laser enemies and win the game.
+Space Invader Game is a 2D side-scrolling space shooter game built with Java and Swing. The player controls a spaceship, defend not to get into the base (left side of the screen) against waves of enemy ships, collects power-ups, and progresses through multiple levels to defeat powerful laser enemies and win the game.
 
 ## Members
 - 6530143 - Min Thuka
