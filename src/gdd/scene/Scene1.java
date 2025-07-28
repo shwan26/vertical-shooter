@@ -21,6 +21,12 @@ import javax.swing.Timer;
 
 public class Scene1 extends JPanel {
 
+    private final int LEVEL_BAR_X = 100;
+    private final int LEVEL_BAR_Y = 10;
+    private final int LEVEL_BAR_WIDTH = 200;
+    private final int LEVEL_BAR_HEIGHT = 10;
+
+
     private int frame = 0;     
     private int lives = 5;
                  
@@ -351,6 +357,44 @@ public class Scene1 extends JPanel {
         }
         g.setColor(Color.WHITE);
 
+        // Draw level progress bar
+        int currentLevel = getCurrentLevel();
+        int levelStartDeaths = 0;
+        int levelEndDeaths = 0;
+
+        switch (currentLevel) {
+            case 1:
+                levelStartDeaths = 0;
+                levelEndDeaths = 30;
+                break;
+            case 2:
+                levelStartDeaths = 30;
+                levelEndDeaths = 60;
+                break;
+            case 3:
+                levelStartDeaths = 60;
+                levelEndDeaths = 100;
+                break;
+            case 4:
+                levelStartDeaths = 100;
+                levelEndDeaths = 100; // Level 4 is final, full bar
+                break;
+        }
+
+        // Compute progress fraction
+        float progress = (levelEndDeaths == levelStartDeaths) ? 1.0f :
+            (float)(deaths - levelStartDeaths) / (levelEndDeaths - levelStartDeaths);
+        progress = Math.max(0f, Math.min(1f, progress)); // clamp
+
+        // Draw background bar
+        g.setColor(Color.DARK_GRAY);
+        g.fillRect(LEVEL_BAR_X, LEVEL_BAR_Y, LEVEL_BAR_WIDTH, LEVEL_BAR_HEIGHT);
+
+        // Draw progress bar
+        g.setColor(Color.GREEN);
+        g.fillRect(LEVEL_BAR_X, LEVEL_BAR_Y, (int)(LEVEL_BAR_WIDTH * progress), LEVEL_BAR_HEIGHT);
+
+        
     }
 
     @Override
@@ -472,6 +516,7 @@ public class Scene1 extends JPanel {
     private void update() {
         spawnEntities();
         spawnLevelPowerUps();
+        checkForSceneTransition();
         checkWinCondition();
         updatePlayer();
         updatePowerUps();
@@ -483,7 +528,7 @@ public class Scene1 extends JPanel {
 
         // Only spawn regular enemies if not in level 4
         if (getCurrentLevel() < 4) {
-            if (frame % 150 == 0) {
+            if (frame % 240 == 0) {
                 int randomY = 80 + randomizer.nextInt(BOARD_HEIGHT - 160);
                 enemies.add(new Alien1(BOARD_WIDTH, randomY));
 
@@ -499,12 +544,6 @@ public class Scene1 extends JPanel {
             }
         }
 
-        if (frame % 250 == 0 && getCurrentLevel() == 4 && laserEnemySpawned < LASER_ENEMY_COUNT) {
-            int laserY = 150 + randomizer.nextInt(250);
-            enemies.add(new LaserEnemy(BOARD_WIDTH, laserY, this));
-            laserEnemySpawned++;
-        }
-
         // Rest of the update method remains the same...
         int currentLevel = getCurrentLevel();
         if (currentLevel > lastLevel) {
@@ -516,13 +555,25 @@ public class Scene1 extends JPanel {
         }
     }
 
-    private int getCurrentLevel() {
-        if (deaths < 25) return 1;         // Level 1: Alien1 only
-        else if (deaths < 50) return 2;    // Level 2: Add Missile enemies
-        else if (deaths < 75) return 3;    // Level 3: Add QuadShot enemies
-        else return 4;                     // Level 4: Add Laser enemies
+    private void checkForSceneTransition() {
+        if (deaths >= 100) {
+            inGame = false;
+            timer.stop();
+            try {
+                if (audioPlayer != null) audioPlayer.stop();
+            } catch (Exception e) {
+                System.err.println("Error stopping audio before transition");
+            }
+            game.loadScene3(); 
+        }
     }
 
+
+    private int getCurrentLevel() {
+        if (deaths < 30) return 1;         // Level 1: Alien1 only
+        else if (deaths < 60) return 2;    // Level 2: Add Missile enemies
+        else return 3;               // Level 3: Add QuadShot enemies
+    }
 
     private void spawnEntities() {
         if (spawnedScores.contains(deaths)) return;
@@ -545,12 +596,6 @@ public class Scene1 extends JPanel {
                         break;
                     case "QuadShotEnemy":
                         if (level >= 3 && level < 4) enemies.add(new QuadShotEnemy(sd.x, sd.y));
-                        break;
-                    case "LaserEnemy":
-                        if (level >= 4 && laserEnemySpawned < LASER_ENEMY_COUNT) {
-                            enemies.add(new LaserEnemy(sd.x, sd.y, this));
-                            laserEnemySpawned++;
-                        }
                         break;
                     case "PowerUp-SpeedUp":
                         powerups.add(new SpeedUp(sd.x, sd.y));

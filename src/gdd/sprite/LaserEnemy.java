@@ -1,6 +1,6 @@
 package gdd.sprite;
 
-import gdd.scene.Scene1;
+import gdd.scene.Scene2;
 import gdd.util.Util;
 import static gdd.Global.*;
 import java.awt.*;
@@ -99,7 +99,7 @@ public class LaserEnemy extends Enemy {
     // State management
     private LaserState currentState = LaserState.APPROACHING;
     private int stateTimer = 0;
-    private Scene1 scene;
+    private Scene2 scene;
 
     // Laser properties
     private boolean laserActive = false;
@@ -129,7 +129,7 @@ public class LaserEnemy extends Enemy {
 
     private final Random randomizer = new Random();
 
-    public LaserEnemy(int x, int y, Scene1 scene) {
+    public LaserEnemy(int x, int y, Scene2 scene) {
         super(x, y);
         this.scene = scene;
         this.laserSweepDirection = randomizer.nextBoolean() ? 1 : -1;

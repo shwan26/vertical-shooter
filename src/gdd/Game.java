@@ -2,6 +2,7 @@ package gdd;
 
 import gdd.scene.InfoScreen;
 import gdd.scene.Scene1;
+import gdd.scene.Scene2;
 import gdd.scene.TitleScene;
 import gdd.scene.TutorialScene;
 
@@ -12,6 +13,7 @@ public class Game extends JFrame {
 
     private TitleScene titleScene;
     private Scene1 scene1;
+    private Scene2 scene2; 
     private TutorialScene tutorialScene;
 
     public Game() {
@@ -70,5 +72,10 @@ public class Game extends JFrame {
     public void loadScene2() {
         scene1 = new Scene1(this); // fresh game instance
         setScene(scene1);
+    }
+
+    public void loadScene3() {
+        scene2 = new Scene2(this); // fresh game instance
+        setScene(scene2);
     }
 }
