@@ -26,6 +26,9 @@ public class Scene1 extends JPanel {
     private final int LEVEL_BAR_WIDTH = 200;
     private final int LEVEL_BAR_HEIGHT = 10;
 
+    private boolean showRedLine = false;
+    private int redLineDuration = 0;
+
 
     private int frame = 0;     
     private int lives = 5;
@@ -416,6 +419,15 @@ public class Scene1 extends JPanel {
         } else {
             gameOver(g);
         }
+        if (showRedLine) {
+            Graphics2D g2d = (Graphics2D) g;
+            GradientPaint redFade = new GradientPaint(
+                0, 0, new Color(255, 0, 0, 180),  // Start: solid red with alpha
+                100, 0, new Color(255, 0, 0, 0)   // End: transparent
+            );
+            g2d.setPaint(redFade);
+            g2d.fillRect(0, 0, 100, BOARD_HEIGHT);
+        }
 
         Toolkit.getDefaultToolkit().sync();
     }
@@ -538,6 +550,13 @@ public class Scene1 extends JPanel {
             maybeSpawnExtraLife();
             lastLevel = currentLevel;
         }
+
+        if (redLineDuration > 0) {
+            redLineDuration--;
+        } else {
+            showRedLine = false;
+        }
+
     }
 
     private void checkForSceneTransition() {
@@ -654,10 +673,16 @@ public class Scene1 extends JPanel {
                 if (enemy.getX() < -50) {
                     enemiesToRemove.add(enemy);
                     lives--;
+
+                    // Show red line 
+                    showRedLine = true;
+                    redLineDuration = 30;
+
                     if (lives <= 0) {
                         handlePlayerDeath();
                     }
                 }
+
             }
         }
         enemies.removeAll(enemiesToRemove);
