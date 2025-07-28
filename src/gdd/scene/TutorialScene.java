@@ -126,10 +126,20 @@ public class TutorialScene extends JPanel {
                 if (enemy.collidesWith(player)) {
                     playerHit = true;
                     explosions.add(new Explosion(player.getX(), player.getY()));
-                    stop();
-                    restartTutorial();
+                    try {
+                        new AudioPlayer("src/audio/explosion.wav").play();
+                    } catch (Exception ex) {
+                        System.err.println("Explosion sound error: " + ex.getMessage());
+                    }
+
+                    new Timer(1000, evt -> {
+                        ((Timer) evt.getSource()).stop();
+                        stop();
+                        restartTutorial();
+                    }).start();
                     return;
                 }
+
 
                 if (enemy.getX() < -50) {
                     toRemove.add(enemy);
@@ -144,6 +154,8 @@ public class TutorialScene extends JPanel {
 
         for (Shot shot : shots) shot.act();
         for (Explosion ex : explosions) ex.act();
+        explosions.removeIf(ex -> !ex.isVisible());
+
 
         if (stage == 0 && !shots.isEmpty()) {
             stage = 1;
@@ -159,9 +171,19 @@ public class TutorialScene extends JPanel {
 
         if (stage == 2 && enemyKilled) {
             stage = 3;
-            stop();
-            game.loadScene2(); 
+            try {
+                new AudioPlayer("src/audio/explosion.wav").play();
+            } catch (Exception ex) {
+                System.err.println("Explosion sound error: " + ex.getMessage());
+            }
+
+            new Timer(1000, evt -> {
+                ((Timer) evt.getSource()).stop();
+                stop();
+                game.loadScene2();
+            }).start();
         }
+
     }
 
     private void stop() {

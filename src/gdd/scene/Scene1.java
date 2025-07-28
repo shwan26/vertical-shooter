@@ -380,16 +380,13 @@ public class Scene1 extends JPanel {
                 break;
         }
 
-        // Compute progress fraction
         float progress = (levelEndDeaths == levelStartDeaths) ? 1.0f :
             (float)(deaths - levelStartDeaths) / (levelEndDeaths - levelStartDeaths);
-        progress = Math.max(0f, Math.min(1f, progress)); // clamp
+        progress = Math.max(0f, Math.min(1f, progress)); 
 
-        // Draw background bar
         g.setColor(Color.DARK_GRAY);
         g.fillRect(LEVEL_BAR_X, LEVEL_BAR_Y, LEVEL_BAR_WIDTH, LEVEL_BAR_HEIGHT);
 
-        // Draw progress bar
         g.setColor(Color.GREEN);
         g.fillRect(LEVEL_BAR_X, LEVEL_BAR_Y, (int)(LEVEL_BAR_WIDTH * progress), LEVEL_BAR_HEIGHT);
 
@@ -492,7 +489,7 @@ public class Scene1 extends JPanel {
     }
 
     private void maybeSpawnExtraLife() {
-        if (randomizer.nextBoolean()) { // 50% chance
+        if (randomizer.nextBoolean()) { 
             int y = 100 + randomizer.nextInt(BOARD_HEIGHT - 200);
             try {
                 powerups.add(new ExtraLife(BOARD_WIDTH, y));
@@ -509,16 +506,13 @@ public class Scene1 extends JPanel {
         spawnEntities();
         spawnLevelPowerUps();
         checkForSceneTransition();
-        checkWinCondition();
         updatePlayer();
         updatePowerUps();
         updateEnemies();
         updateShots();
         updateEnemyShots();
         updateBombs();
-        
-
-        // Only spawn regular enemies if not in level 4
+   
         if (getCurrentLevel() < 4) {
             if (frame % 240 == 0) {
                 int randomY = 80 + randomizer.nextInt(BOARD_HEIGHT - 160);
@@ -536,7 +530,6 @@ public class Scene1 extends JPanel {
             }
         }
 
-        // Rest of the update method remains the same...
         int currentLevel = getCurrentLevel();
         if (currentLevel > lastLevel) {
             powerups.clear();
@@ -606,30 +599,6 @@ public class Scene1 extends JPanel {
         }
     }
 
-
-
-    private void checkWinCondition() {
-        // Check if all laser enemies are killed
-        if (laserEnemiesKilled >= LASER_ENEMY_COUNT) {
-            inGame = false;
-            timer.stop();
-            message = "Game won!";
-            showPlayAgain = true;
-            gameOverSoundPlayed = true;
-
-            try {
-                if (audioPlayer != null) {
-                    audioPlayer.stop(); 
-                }
-                new AudioPlayer("src/audio/gamewon.wav").play();
-            } catch (Exception e) {
-                System.out.println("Game won sound error: " + e);
-            }
-        }
-    }
-
-
-
     private void updatePlayer() {
         player.act(); 
     }
@@ -679,10 +648,9 @@ public class Scene1 extends JPanel {
                     handlePlayerHit();
                     
                     enemiesToRemove.add(enemy);
-                    continue; // Skip off-screen 
+                    continue; 
                 }
 
-                // Enemy off screen
                 if (enemy.getX() < -50) {
                     enemiesToRemove.add(enemy);
                     lives--;
@@ -699,7 +667,6 @@ public class Scene1 extends JPanel {
         if (enemy instanceof MissileEnemy) {
             MissileEnemy missile = (MissileEnemy) enemy;
             missile.update(player);
-            //missile.act(-1); 
             int enemySpeed = getEnemySpeed(); 
             enemy.act(-enemySpeed);
      
@@ -719,14 +686,12 @@ public class Scene1 extends JPanel {
             if (randomizer.nextInt(360) == 1) { 
                 handleAlienShooting(alien);
             }
-            //enemy.act(-1);
-            int enemySpeed = getEnemySpeed(); // New method for level-based speed
+            int enemySpeed = getEnemySpeed(); 
             enemy.act(-enemySpeed);
 
         } else if (enemy instanceof QuadShotEnemy) {
             QuadShotEnemy quadEnemy = (QuadShotEnemy) enemy;
-            //quadEnemy.act(-1);
-            int enemySpeed = getEnemySpeed(); // New method for level-based speed
+            int enemySpeed = getEnemySpeed(); 
             enemy.act(-enemySpeed);
             enemyShots.addAll(quadEnemy.getPendingShots());
         }
@@ -737,7 +702,7 @@ public class Scene1 extends JPanel {
             case 1: return 1;
             case 2: return 2;
             case 3: return 3;
-            default: return 2; // LaserEnemy handles its own speed
+            default: return 2; 
         }
     }
 
@@ -837,14 +802,12 @@ public class Scene1 extends JPanel {
             if (bomb.isVisible()) {
                 bomb.act();
 
-                // Check collision with player
                 if (player.isVisible() && !player.isInvulnerable() &&
                         bomb.collidesWith(player)) {
                     handlePlayerHit();
                     bombsToRemove.add(bomb);
                 }
 
-                // Remove off-screen bombs
                 if (bomb.getX() < -50) {
                     bombsToRemove.add(bomb);
                 }
@@ -887,7 +850,6 @@ public class Scene1 extends JPanel {
         public void keyPressed(KeyEvent e) {
             player.keyPressed(e);
 
-            // Handle shooting
             if (e.getKeyCode() == KeyEvent.VK_SPACE && inGame) {
                 int maxShots = 20;
                 int shotsToCreate = player.isThreeWayShotEnabled() ? 3 : 1;
