@@ -29,6 +29,8 @@ public class TutorialScene extends JPanel {
     private boolean powerupCollected = false;
     private boolean enemyKilled = false;
     private boolean playerHit = false;
+    private boolean showPlayerExhaust = true;
+
 
     private Timer timer;
 
@@ -73,6 +75,10 @@ public class TutorialScene extends JPanel {
 
     private void update() {
         player.act();
+        if (player.getExhaust().isActive()) {
+            player.getExhaust().update();
+        }
+
 
         if (stage == 1) {
             List<PowerUp> toRemove = new ArrayList<>();
@@ -103,6 +109,9 @@ public class TutorialScene extends JPanel {
 
             for (Enemy enemy : new ArrayList<>(enemies)) {
                 enemy.act(-1);
+                if (enemy.getExhaust().isActive()) {
+                    enemy.getExhaust().update();
+                }
 
                 for (Shot shot : shots) {
                     if (shot.collidesWith(enemy)) {
@@ -185,9 +194,19 @@ public class TutorialScene extends JPanel {
     }
 
     private void drawGameObjects(Graphics g) {
-        if (player.isVisible()) {
+        if (player.isVisible() && (!player.isInvulnerable() || (frame % 10 < 5))) {
             g.drawImage(player.getImage(), player.getX(), player.getY(), this);
         }
+ 
+        if (player.getExhaust().isActive() && (!player.isInvulnerable() || (frame % 10 < 5))) {
+            g.drawImage(
+                player.getExhaust().getCurrentFrame(),
+                player.getExhaust().getX(player),
+                player.getExhaust().getY(player),
+                this
+            );
+        }
+
 
         for (Shot s : shots) {
             if (s.isVisible()) g.drawImage(s.getImage(), s.getX(), s.getY(), this);
@@ -198,8 +217,20 @@ public class TutorialScene extends JPanel {
         }
 
         for (Enemy e : enemies) {
-            if (e.isVisible()) g.drawImage(e.getImage(), e.getX(), e.getY(), this);
+            if (e.getExhaust().isActive()) {
+                g.drawImage(
+                    e.getExhaust().getCurrentFrame(),
+                    e.getExhaust().getX(e),
+                    e.getExhaust().getY(e),
+                    this
+                );
+            }
+
+            if (e.isVisible()) {
+                g.drawImage(e.getImage(), e.getX(), e.getY(), this);
+            }
         }
+
 
         for (Explosion ex : explosions) {
             if (ex.isVisible()) g.drawImage(ex.getImage(), ex.getX(), ex.getY(), this);
