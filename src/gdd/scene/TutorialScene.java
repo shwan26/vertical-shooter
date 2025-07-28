@@ -151,7 +151,7 @@ public class TutorialScene extends JPanel {
         if (stage == 2 && enemyKilled) {
             stage = 3;
             stop();
-            game.loadScene2(); 
+            game.loadScene3(); 
         }
     }
 

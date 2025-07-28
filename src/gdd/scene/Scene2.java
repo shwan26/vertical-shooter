@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Random;
 
 public class Scene2 extends JPanel {
-    private final int LASER_ENEMY_COUNT = 2;
+    private final int LASER_ENEMY_COUNT = 3;
     private final int BOARD_WIDTH = Global.BOARD_WIDTH;
     private final int BOARD_HEIGHT = Global.BOARD_HEIGHT;
 
@@ -336,14 +336,35 @@ public class Scene2 extends JPanel {
 
 
     private void drawGame(Graphics g) {
-        g.drawImage(player.getImage(), player.getX(), player.getY(), this);
+        if (player.getExhaust().isActive() && (!player.isInvulnerable() || (frame % 10 < 5))) {
+            g.drawImage(
+                player.getExhaust().getCurrentFrame(),
+                player.getExhaust().getX(player),
+                player.getExhaust().getY(player),
+                this
+            );
+        }
+
+        if (!player.isInvulnerable() || (frame % 10 < 5)) {
+            g.drawImage(player.getImage(), player.getX(), player.getY(), this);
+        }
 
         for (LaserEnemy e : enemies) {
+            if (e.getExhaust().isActive()) {
+                g.drawImage(
+                    e.getExhaust().getCurrentFrame(),
+                    e.getExhaust().getX(e),
+                    e.getExhaust().getY(e),
+                    this
+                );
+            }
+
             e.drawLaser((Graphics2D) g);
             e.drawChargingEffect((Graphics2D) g);
             e.drawHealthBar((Graphics2D) g);
             g.drawImage(e.getImage(), e.getX(), e.getY(), this);
         }
+
 
         for (Shot s : shots) {
             g.drawImage(s.getImage(), s.getX(), s.getY(), this);

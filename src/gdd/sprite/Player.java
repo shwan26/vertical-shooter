@@ -77,31 +77,24 @@ public class Player extends Sprite {
             shots.add(new Shot(baseX, baseY - 30));
         }
         else {
-            // Single shot
+            
             shots.add(new Shot(getX(), getY()));
         }
 
         return shots;
     }
 
-    /**
-     * Updates player state including movement and power-up timers
-     */
     @Override
     public void act() {
-        // Movement
         x += dx;
         y += dy;
 
-        // Boundary checks
         x = Math.max(0, Math.min(x, BOARD_WIDTH / 2 - getImage().getWidth()));
         y = Math.max(2, Math.min(y, BOARD_HEIGHT - getImage().getHeight() - 2));
 
-        // Power-up timers
         if (multiShotEnabled && --multiShotDuration <= 0) multiShotEnabled = false;
         if (threeWayShotEnabled && --threeWayShotDuration <= 0) threeWayShotEnabled = false;
 
-        // Handle invulnerability
         if (invulnerable) {
             invulnerabilityTimer--;
             if (invulnerabilityTimer <= 0) {
@@ -113,7 +106,6 @@ public class Player extends Sprite {
 
     @Override
     public Rectangle getCollisionBounds() {
-        // Reduce hitbox to 60% of width and 70% of height, centered
         int width = (int)(image.getWidth() * 0.7);
         int height = (int)(image.getHeight() * 0.5);
         int xOffset = (image.getWidth() - width) / 2;
@@ -122,7 +114,6 @@ public class Player extends Sprite {
         return new Rectangle(x + xOffset, y + yOffset, width, height);
     }
 
-    // Input Handling
     public void keyPressed(KeyEvent e) {
         switch (e.getKeyCode()) {
             case KeyEvent.VK_UP: dy = -currentSpeed; break;
